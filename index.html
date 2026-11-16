@@ -25,7 +25,7 @@
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden">
       <div class="bg-blue-900 p-8 text-white text-center">
         <h1 class="text-2xl md:text-3xl font-bold">ตรวจสอบข้อมูลและยืนยันสิทธิ์</h1>
-        <p class="opacity-80 mt-2 font-light">ระบบบันทึกข้อมูลนักศึกษา (PDPA)</p>
+        <p class="opacity-80 mt-2 font-light">ระบบบันทึกข้อมูลนักศึกษาและสัญญาการศึกษา</p>
       </div>
       
       <div class="p-6 md:p-10 border-b bg-white">
@@ -36,17 +36,20 @@
       </div>
 
       <div id="resultArea" class="hidden p-6 md:p-10 space-y-8">
+        <!-- แสดงข้อมูลและ Status 3 ส่วน -->
         <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div><span class="text-xs font-bold text-blue-400 uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-xl font-bold text-blue-900">-</p></div>
           <div><span class="text-xs font-bold text-blue-400 uppercase">รหัสนักศึกษา</span><p id="resId" class="text-xl font-bold text-blue-900">-</p></div>
           <div class="md:col-span-2 pt-4 border-t flex flex-wrap gap-3">
-            <span id="pdpaBadge" class="px-4 py-1.5 rounded-full text-white text-xs font-bold">สถานะ PDPA</span>
-            <span id="transBadge" class="px-4 py-1.5 rounded-full text-white text-xs font-bold">สถานะ Transcript</span>
+            <span id="pdpaBadge" class="px-4 py-1.5 rounded-full text-white text-xs font-bold">PDPA</span>
+            <span id="contractBadge" class="px-4 py-1.5 rounded-full text-white text-xs font-bold">Contract</span>
+            <span id="transBadge" class="px-4 py-1.5 rounded-full text-white text-xs font-bold">Transcript</span>
           </div>
         </div>
 
+        <!-- 1. ส่วน PDPA -->
         <div id="pdpaSection" class="space-y-6">
-          <h2 class="text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">แบบฟอร์มแสดงความยินยอม (PDPA)</h2>
+          <h2 class="text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">1. แบบฟอร์มแสดงความยินยอม (PDPA)</h2>
           <div id="pdpaForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
               <div><label class="text-sm font-bold text-gray-600 mb-1 block">เขียนที่</label><input type="text" id="writtenAt" value="วิทยาลัย..." class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
@@ -54,40 +57,21 @@
             </div>
 
             <div class="space-y-4 text-sm leading-relaxed text-gray-700">
-              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4">
-                <p>ข้อ 1. ข้าพเจ้าตกลงยินยอมให้สถาบัน...</p>
-                <div class="flex gap-8 font-bold pt-3 border-t">
-                  <label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label>
-                  <label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label>
-                </div>
+              <!-- คำถาม 1-5 -->
+              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4"><p>ข้อ 1. ข้าพเจ้าตกลงยินยอมให้สถาบัน...</p>
+                <div class="flex gap-8 font-bold pt-3 border-t"><label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label></div>
               </div>
-              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4">
-                <p>ข้อ 2. ข้าพเจ้าตกลงยินยอม...</p>
-                <div class="flex gap-8 font-bold pt-3 border-t">
-                  <label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label>
-                  <label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label>
-                </div>
+              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4"><p>ข้อ 2. ข้าพเจ้าตกลงยินยอม...</p>
+                <div class="flex gap-8 font-bold pt-3 border-t"><label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label></div>
               </div>
-              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4">
-                <p>ข้อ 3. ข้าพเจ้าตกลงยินยอม...</p>
-                <div class="flex gap-8 font-bold pt-3 border-t">
-                  <label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label>
-                  <label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label>
-                </div>
+              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4"><p>ข้อ 3. ข้าพเจ้าตกลงยินยอม...</p>
+                <div class="flex gap-8 font-bold pt-3 border-t"><label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label></div>
               </div>
-              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4">
-                <p>ข้อ 4. ข้าพเจ้าตกลงยินยอม...</p>
-                <div class="flex gap-8 font-bold pt-3 border-t">
-                  <label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label>
-                  <label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label>
-                </div>
+              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4"><p>ข้อ 4. ข้าพเจ้าตกลงยินยอม...</p>
+                <div class="flex gap-8 font-bold pt-3 border-t"><label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label></div>
               </div>
-              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4">
-                <p>ข้อ 5. ข้าพเจ้าตกลงยินยอม...</p>
-                <div class="flex gap-8 font-bold pt-3 border-t">
-                  <label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label>
-                  <label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label>
-                </div>
+              <div class="p-5 border rounded-2xl bg-white shadow-sm space-y-4"><p>ข้อ 5. ข้าพเจ้าตกลงยินยอม...</p>
+                <div class="flex gap-8 font-bold pt-3 border-t"><label class="text-green-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ยินยอม" checked class="w-5 h-5"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ไม่ยินยอม" class="w-5 h-5"> ไม่ยินยอม</label></div>
               </div>
             </div>
 
@@ -109,13 +93,46 @@
               </div>
             </div>
             
-            <button onclick="submitPdpa()" class="w-full bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-bold text-xl shadow-xl transition active:scale-95">บันทึกและสร้าง PDF</button>
+            <button onclick="submitPdpa()" class="w-full bg-green-600 hover:bg-green-700 text-white py-5 rounded-2xl font-bold text-xl shadow-xl transition active:scale-95">บันทึกและสร้าง PDF PDPA</button>
           </div>
           <div id="pdpaViewArea" class="hidden"><a id="viewPdpaBtn" href="#" target="_blank" class="block w-full text-center p-5 bg-green-100 text-green-800 rounded-2xl font-bold border-2 border-green-200">ดูเอกสาร PDPA ที่บันทึกแล้ว</a></div>
         </div>
 
+        <!-- 2. ส่วน Contract (สัญญาการศึกษา) -->
+        <div id="contractSection" class="space-y-6 border-t pt-8">
+          <h2 class="text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">2. สัญญาการศึกษา (Contract)</h2>
+          <div id="contractForm" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-2xl">
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">วันที่ทำสัญญา</label><input type="date" id="contractDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">วันเกิด</label><input type="date" id="birthDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
+              <div class="md:col-span-2"><label class="text-sm font-bold text-gray-600 mb-1 block">ที่อยู่ปัจจุบัน</label><textarea id="address" rows="2" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400" placeholder="บ้านเลขที่, ถนน, ตำบล, อำเภอ, จังหวัด, รหัสไปรษณีย์"></textarea></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">เบอร์โทรศัพท์</label><input type="tel" id="phone" maxlength="10" placeholder="0xxxxxxxx" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">อีเมล</label><input type="email" id="email" placeholder="example@email.com" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">ชื่อ-นามสกุล ผู้ปกครอง</label><input type="text" id="parentName" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">เบอร์โทรศัพท์ผู้ปกครอง</label><input type="tel" id="parentPhone" maxlength="10" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-blue-400"></div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 py-8 bg-gray-50 rounded-3xl">
+              <div class="flex flex-col items-center">
+                <p class="font-bold text-gray-600">ลายมือชื่อนักศึกษา</p>
+                <div id="studentSigPreview" class="preview-box" onclick="openModal('studentSig')"><span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span></div>
+                <p class="font-bold text-blue-900 mt-2">( <span id="resName3">-</span> )</p>
+              </div>
+              <div class="flex flex-col items-center">
+                <p class="font-bold text-gray-600">ลายมือชื่อผู้ปกครอง</p>
+                <div id="parentSigPreview" class="preview-box" onclick="openModal('parentSig')"><span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span></div>
+                <p class="font-bold text-blue-900 mt-2">( <span id="parentNamePreview">ผู้ปกครอง</span> )</p>
+              </div>
+            </div>
+
+            <button onclick="submitContract()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-5 rounded-2xl font-bold text-xl shadow-xl transition active:scale-95">บันทึกและสร้าง PDF สัญญา</button>
+          </div>
+          <div id="contractViewArea" class="hidden"><a id="viewContractBtn" href="#" target="_blank" class="block w-full text-center p-5 bg-indigo-100 text-indigo-800 rounded-2xl font-bold border-2 border-indigo-200">ดูเอกสารสัญญาที่บันทึกแล้ว</a></div>
+        </div>
+
+        <!-- 3. ส่วน Transcript -->
         <div id="transSection" class="space-y-6 border-t pt-8">
-          <h2 class="text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">อัปโหลดเอกสาร (Transcript)</h2>
+          <h2 class="text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">3. อัปโหลดเอกสาร (Transcript)</h2>
           <div id="uploadZone" class="hidden p-10 border-4 border-dashed rounded-3xl bg-gray-50 text-center">
             <input type="file" id="fileIn" accept=".pdf" class="hidden" onchange="document.getElementById('fileName').innerText='ไฟล์ที่เลือก: ' + this.files[0].name">
             <div class="cursor-pointer" onclick="document.getElementById('fileIn').click()">
@@ -127,10 +144,12 @@
           </div>
           <div id="transViewArea" class="hidden"><a id="viewTransBtn" href="#" target="_blank" class="block w-full text-center p-5 bg-blue-100 text-blue-800 rounded-2xl font-bold border-2 border-blue-200">ดู Transcript ที่อัปโหลดแล้ว</a></div>
         </div>
+
       </div>
     </div>
   </div>
 
+  <!-- Modal สำหรับเซ็นลายมือชื่อ -->
   <div id="sigModal" class="modal">
     <div class="modal-content animate-scale-up">
       <h3 class="font-bold text-xl mb-4 text-blue-900">ลงลายมือชื่อ</h3>
@@ -143,7 +162,6 @@
     </div>
   </div>
 
-  <!-- เรียกใช้งานไฟล์ JavaScript แยกออกมา -->
   <script src="app.js"></script>
 </body>
 </html>
