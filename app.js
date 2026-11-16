@@ -1,18 +1,16 @@
-// ใส่ Web App URL ที่ได้จากการ Deploy บน Google Apps Script ตรงนี้
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
 
 let current = null;
 let modalPad;
 let activeType = '';
-let savedSigs = { user: null, w1: null, w2: null };
+let savedSigs = { user: null, w1: null, w2: null, studentSig: null, parentSig: null };
 
-// ฟังก์ชันกลางสำหรับเรียกใช้งาน Apps Script API
 async function callApi(action, payload = {}) {
   try {
     const response = await fetch(APPS_SCRIPT_URL, {
       method: "POST",
       body: JSON.stringify({ action, ...payload }),
-      headers: { "Content-Type": "text/plain;charset=utf-8" } // ใช้ text/plain เพื่อป้องกัน CORS Preflight error ของ Google Apps Script
+      headers: { "Content-Type": "text/plain;charset=utf-8" }
     });
     const result = await response.json();
     if (result.status === 'error') throw new Error(result.message);
@@ -41,6 +39,7 @@ function showResult(data) {
   document.getElementById('resultArea').classList.remove('hidden');
   document.getElementById('resName').innerText = data.name;
   document.getElementById('resName2').innerText = data.name;
+  document.getElementById('resName3').innerText = data.name;
   document.getElementById('resId').innerText = data.studentId;
   
   const now = new Date();
@@ -48,9 +47,11 @@ function showResult(data) {
   const localToday = new Date(now.getTime() - (offset * 60 * 1000));
   const todayStr = localToday.toISOString().split('T')[0];
   
-  const dateInput = document.getElementById('dateInput');
-  dateInput.value = todayStr;
-  dateInput.max = todayStr;
+  // Set default dates
+  ['dateInput', 'contractDate'].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) { el.value = todayStr; el.max = todayStr; }
+  });
 
   const getBadgeClass = (status) => {
     if (status === "ผ่าน" || status === "เรียบร้อย") return "status-green";
@@ -58,9 +59,9 @@ function showResult(data) {
     return "status-yellow";
   };
 
+  // 1. PDPA Status & View
   document.getElementById('pdpaBadge').innerText = "PDPA: " + (data.pdpaStatus || "ยังไม่ส่ง");
   document.getElementById('pdpaBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.pdpaStatus);
-  
   if(data.pdpaPdfUrl) {
     document.getElementById('pdpaForm').classList.add('hidden');
     document.getElementById('pdpaViewArea').classList.remove('hidden');
@@ -70,6 +71,19 @@ function showResult(data) {
     document.getElementById('pdpaViewArea').classList.add('hidden');
   }
 
+  // 2. Contract Status & View
+  document.getElementById('contractBadge').innerText = "Contract: " + (data.contractStatus || "ยังไม่ส่ง");
+  document.getElementById('contractBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.contractStatus);
+  if(data.contractPdfUrl) {
+    document.getElementById('contractForm').classList.add('hidden');
+    document.getElementById('contractViewArea').classList.remove('hidden');
+    document.getElementById('viewContractBtn').href = data.contractPdfUrl;
+  } else {
+    document.getElementById('contractForm').classList.remove('hidden');
+    document.getElementById('contractViewArea').classList.add('hidden');
+  }
+
+  // 3. Transcript Status & View
   document.getElementById('transBadge').innerText = "Transcript: " + (data.transcriptStatus || "ยังไม่ส่ง");
   document.getElementById('transBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.transcriptStatus);
   
@@ -88,7 +102,7 @@ async function submitPdpa() {
   if (!savedSigs.user) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อนักศึกษา', 'warning');
   if (!document.getElementById('w1Name').value) return Swal.fire('แจ้งเตือน', 'กรุณากรอกชื่อพยาน 1', 'warning');
 
-  Swal.fire({ title: 'กำลังสร้าง PDF...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  Swal.fire({ title: 'กำลังสร้าง PDF PDPA...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
   const formData = {
     row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
@@ -104,7 +118,34 @@ async function submitPdpa() {
   };
 
   await callApi('savePdpa', { formData });
-  Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกข้อมูลเรียบร้อยแล้ว', timer: 2000 }).then(() => search());
+  Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึก PDPA เรียบร้อยแล้ว', timer: 2000 }).then(() => search());
+}
+
+async function submitContract() {
+  const contractDate = document.getElementById('contractDate').value;
+  const birthDate = document.getElementById('birthDate').value;
+  const address = document.getElementById('address').value;
+  const phone = document.getElementById('phone').value;
+  const email = document.getElementById('email').value;
+  const parentName = document.getElementById('parentName').value;
+  const parentPhone = document.getElementById('parentPhone').value;
+
+  if (!contractDate || !birthDate || !address || !phone || !email || !parentName || !parentPhone) {
+    return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลในฟอร์มสัญญาให้ครบถ้วน', 'warning');
+  }
+  if (!savedSigs.studentSig) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อนักศึกษา', 'warning');
+  if (!savedSigs.parentSig) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อผู้ปกครอง', 'warning');
+
+  Swal.fire({ title: 'กำลังสร้าง PDF สัญญา...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const formData = {
+    row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
+    contractDate, birthDate, address, phone, email, parentName, parentPhone,
+    studentSig: savedSigs.studentSig, parentSig: savedSigs.parentSig
+  };
+
+  await callApi('saveContract', { formData });
+  Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกสัญญาการศึกษาเรียบร้อยแล้ว', timer: 2000 }).then(() => search());
 }
 
 async function uploadFile() {
@@ -138,6 +179,20 @@ function saveModalSig() {
   if (modalPad.isEmpty()) return;
   const dataUrl = modalPad.toDataURL();
   savedSigs[activeType] = dataUrl;
-  document.getElementById(activeType + 'Preview').innerHTML = `<img src="${dataUrl}" class="h-full">`;
+  
+  let previewId = activeType + 'Preview';
+  if(activeType === 'user') previewId = 'userPreview';
+  
+  document.getElementById(previewId).innerHTML = `<img src="${dataUrl}" class="h-full">`;
+  
+  if (activeType === 'parentName') {
+    // ถ้ามีการผูกชื่อผู้ปกครอง
+  }
   closeModal();
 }
+
+// อัปเดตชื่อผู้ปกครองบน UI แบบ Realtime ใต้ช่องเซ็น
+document.getElementById('parentName')?.addEventListener('input', (e) => {
+  const val = e.target.value.trim();
+  document.getElementById('parentNamePreview').innerText = val || "ผู้ปกครอง";
+});
