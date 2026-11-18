@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initThaiAddress();
 });
 
-// ฟังก์ชันสลับ Tab
 function switchTab(tabName) {
   const sections = {
     pdpa: document.getElementById('pdpaSection'),
@@ -135,6 +134,23 @@ async function search() {
   showResult(data);
 }
 
+// ฟังก์ชันจัดการข้อความและสีของสถานะทั้ง 3 ส่วน
+function getStatusDisplay(rawStatus) {
+  const status = (rawStatus || "").toString().trim();
+  
+  if (status === "เรียบร้อย" || status === "ผ่าน") {
+    return { text: "เรียบร้อย", colorClass: "status-green" };
+  }
+  if (status === "รอตรวจสอบ") {
+    return { text: "รอตรวจสอบ", colorClass: "status-purple" };
+  }
+  if (status === "-") {
+    return { text: "-", colorClass: "status-gray" };
+  }
+  // กรณีว่าง, "ยังไม่ส่ง", "รอแนบเอกสาร", "รอแนบเเอกสาร", "แก้ไข" หรืออื่นๆ ให้แสดงเป็น "รอดำเนินการ" สีเหลือง
+  return { text: "รอดำเนินการ", colorClass: "status-yellow" };
+}
+
 function showResult(data) {
   document.getElementById('resultArea').classList.remove('hidden');
   document.getElementById('resName').innerText = data.name;
@@ -153,15 +169,10 @@ function showResult(data) {
     if(el) { el.value = todayStr; el.max = todayStr; }
   });
 
-  const getBadgeClass = (status) => {
-    if (status === "ผ่าน" || status === "เรียบร้อย") return "status-green";
-    if (status === "-") return "status-gray"; 
-    return "status-yellow";
-  };
-
   // 1. PDPA
-  document.getElementById('pdpaBadge').innerText = "PDPA: " + (data.pdpaStatus || "ยังไม่ส่ง");
-  document.getElementById('pdpaBadge').className = "px-3 py-1.5 rounded-full text-white text-xs font-bold truncate shadow-sm " + getBadgeClass(data.pdpaStatus);
+  const pdpaInfo = getStatusDisplay(data.pdpaStatus);
+  document.getElementById('pdpaBadge').innerText = "PDPA: " + pdpaInfo.text;
+  document.getElementById('pdpaBadge').className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm " + pdpaInfo.colorClass;
   if(data.pdpaPdfUrl) {
     document.getElementById('pdpaForm').classList.add('hidden');
     document.getElementById('pdpaViewArea').classList.remove('hidden');
@@ -172,8 +183,9 @@ function showResult(data) {
   }
 
   // 2. Contract
-  document.getElementById('contractBadge').innerText = "Contract: " + (data.contractStatus || "ยังไม่ส่ง");
-  document.getElementById('contractBadge').className = "px-3 py-1.5 rounded-full text-white text-xs font-bold truncate shadow-sm " + getBadgeClass(data.contractStatus);
+  const contractInfo = getStatusDisplay(data.contractStatus);
+  document.getElementById('contractBadge').innerText = "Contract: " + contractInfo.text;
+  document.getElementById('contractBadge').className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm " + contractInfo.colorClass;
   if(data.contractPdfUrl) {
     document.getElementById('contractForm').classList.add('hidden');
     document.getElementById('contractViewArea').classList.remove('hidden');
@@ -184,13 +196,14 @@ function showResult(data) {
   }
 
   // 3. Transcript
-  document.getElementById('transBadge').innerText = "Transcript: " + (data.transcriptStatus || "ยังไม่ส่ง");
-  document.getElementById('transBadge').className = "px-3 py-1.5 rounded-full text-white text-xs font-bold truncate shadow-sm " + getBadgeClass(data.transcriptStatus);
+  const transInfo = getStatusDisplay(data.transcriptStatus);
+  document.getElementById('transBadge').innerText = "Transcript: " + transInfo.text;
+  document.getElementById('transBadge').className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm " + transInfo.colorClass;
   
   const uz = document.getElementById('uploadZone');
   const transView = document.getElementById('transViewArea');
   
-  if (data.transcriptFileUrl) {
+  if (data.transcriptFileUrl && (data.transcriptStatus || "").trim() !== "แก้ไข") {
     uz.classList.add('hidden');
     transView.classList.remove('hidden');
     document.getElementById('viewTransBtn').href = data.transcriptFileUrl;
@@ -200,7 +213,6 @@ function showResult(data) {
   }
 }
 
-// ฟังก์ชันช่วยแสดง Loading พร้อมเปอร์เซ็นต์ % ความสำเร็จ
 function showProgressLoading(titleText) {
   let timerInterval;
   let progress = 0;
@@ -221,7 +233,7 @@ function showProgressLoading(titleText) {
       
       timerInterval = setInterval(() => {
         progress += Math.floor(Math.random() * 15) + 10;
-        if (progress > 90) progress = 90; // ค้างไว้ที่ 90% จนกว่า API จะตอบกลับ
+        if (progress > 90) progress = 90;
         progressB.style.width = progress + '%';
         progressT.innerText = progress + '%';
       }, 250);
