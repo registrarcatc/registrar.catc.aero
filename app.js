@@ -1,88 +1,314 @@
-// ข้อมูลจำลองนักศึกษาในระบบ และ Admin Key
+// *** ใส่ URL Web App ของคุณตรงนี้ ***
+const API_URL = "วาง_URL_WEB_APP_ของคุณที่นี่";
 const ADMIN_ID = "1032355109000";
 
-let studentsDB = [
-  { idCard: "1100100111111", studentId: "6901001", name: "นายสมชาย การบิน", course: "หลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมการบิน", pdpaStatus: "รอตรวจสอบ", pdpaLink: "pdpa_sample.pdf", contractStatus: "", contractLink: "", transStatus: "รอตรวจสอบ", transLink: "trans_sample.pdf" },
-  { idCard: "1100100222222", studentId: "6901002", name: "นางสาวสมหญิง น่านฟ้า", course: "หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) สาขาวิชาเทคโนโลยีการบิน", pdpaStatus: "เรียบร้อย", pdpaLink: "doc1.pdf", contractStatus: "รอตรวจสอบ", contractLink: "contract_sample.pdf", transStatus: "", transLink: "" },
-  { idCard: "1100100333333", studentId: "6901003", name: "นายกัปตัน มั่นคง", course: "หลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมการบิน", pdpaStatus: "", pdpaLink: "", contractStatus: "เรียบร้อย", contractLink: "doc2.pdf", transStatus: "รอตรวจสอบ", transLink: "trans_sample2.pdf" }
-];
-
 let currentStudent = null;
+let adminStudentsList = [];
 let currentAdminTab = 'pdpa';
-let reviewingStudentId = null;
+let thaiAddressData = [];
 
-// ฟังก์ชันค้นหาข้อมูล (รองรับทั้งเลขนักศึกษาปกติ และเลข Admin)
-function search() {
-  const query = document.getElementById('idSearch').value.trim();
-  if (query.length !== 13) {
+// ==========================================
+// 1. ระบบค้นหาหลัก (รองรับทั้ง Admin และนักศึกษา)
+// ==========================================
+async function search() {
+  const idCard = document.getElementById('idSearch').value.trim();
+  if (idCard.length !== 13) {
     Swal.fire({ icon: 'warning', title: 'กรุณากรอกเลขบัตรประชาชน 13 หลักให้ครบถ้วน' });
     return;
   }
 
-  // 1. ตรวจสอบว่าเป็นเลข Admin หรือไม่
-  if (query === ADMIN_ID) {
-    document.getElementById('resultArea').classList.add('hidden');
-    document.getElementById('adminArea').classList.remove('hidden');
-    renderAdminDashboard();
-    Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบผู้ดูแลระบบ (Admin) สำเร็จ', timer: 1500, showConfirmButton: false });
+  Swal.fire({ title: 'กำลังค้นหาข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  // กรณีที่ 1: กรอกเลข Admin
+  if (idCard === ADMIN_ID) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'getAdminList' })
+      });
+      const res = await response.json();
+      Swal.close();
+
+      if (res.status === 'success') {
+        adminStudentsList = res.data || [];
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('adminArea').classList.remove('hidden');
+        renderAdminDashboard();
+        Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบ Admin สำเร็จ', timer: 1200, showConfirmButton: false });
+      } else {
+        Swal.fire({ icon: 'error', title: 'ไม่สามารถโหลดข้อมูล Admin ได้', text: res.message });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', text: err.message });
+    }
     return;
   }
 
-  // 2. ค้นหาข้อมูลนักศึกษาตามปกติ
-  const found = studentsDB.find(s => s.idCard === query);
-  if (!found) {
-    Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูลนักศึกษา', text: 'กรุณาตรวจสอบเลขประจำตัวประชาชนอีกครั้ง' });
-    document.getElementById('resultArea').classList.add('hidden');
-    document.getElementById('adminArea').classList.add('hidden');
-    return;
-  }
+  // กรณีที่ 2: กรอกเลขบัตรประชาชนนักศึกษา (ใช้ action: 'searchStudent' เดิม)
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'searchStudent', idCard: idCard })
+    });
+    const res = await response.json();
+    Swal.close();
 
-  currentStudent = found;
-  document.getElementById('adminArea').classList.add('hidden');
-  document.getElementById('resultArea').classList.remove('hidden');
-  updateStudentUI();
+    if (res.status === 'success' && res.data) {
+      currentStudent = res.data;
+      document.getElementById('adminArea').classList.add('hidden');
+      document.getElementById('resultArea').classList.remove('hidden');
+      renderStudentUI();
+    } else {
+      Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูลนักศึกษา', text: 'กรุณาตรวจสอบเลขบัตรประชาชน 13 หลักอีกครั้ง' });
+      document.getElementById('resultArea').classList.add('hidden');
+      document.getElementById('adminArea').classList.add('hidden');
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', text: err.message });
+  }
 }
 
-function updateStudentUI() {
+// ==========================================
+// 2. ระบบแสดงผลและการส่งข้อมูลฝั่งนักศึกษา (ตามโครงสร้างเดิม)
+// ==========================================
+function renderStudentUI() {
   document.getElementById('resName').innerText = currentStudent.name;
   document.getElementById('resName2').innerText = currentStudent.name;
+  document.getElementById('resName3').innerText = currentStudent.name;
   document.getElementById('resId').innerText = currentStudent.studentId;
   document.getElementById('resCourse').innerText = currentStudent.course;
 
-  updateBadge('pdpaBadge', 'PDPA', currentStudent.pdpaStatus || 'ยังไม่ส่ง');
-  updateBadge('contractBadge', 'Contract', currentStudent.contractStatus || 'ยังไม่ส่ง');
-  updateBadge('transBadge', 'Transcript', currentStudent.transStatus || 'ยังไม่ส่ง');
+  setBadge('pdpaBadge', 'PDPA', currentStudent.pdpaStatus);
+  setBadge('contractBadge', 'Contract', currentStudent.contractStatus);
+  setBadge('transBadge', 'Transcript', currentStudent.transcriptStatus);
 
-  // ตรวจสอบว่าเอกสารผ่านครบทั้ง 3 รายการหรือไม่ เพื่อเปิดปุ่มเข้าระบบบริหารการศึกษา
-  const allPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transStatus === 'เรียบร้อย');
+  // จัดการแสดงผลฟอร์ม PDPA
+  if (currentStudent.pdpaPdfUrl && currentStudent.pdpaStatus) {
+    document.getElementById('pdpaForm').classList.add('hidden');
+    document.getElementById('pdpaViewArea').classList.remove('hidden');
+    document.getElementById('viewPdpaBtn').href = currentStudent.pdpaPdfUrl;
+    document.getElementById('viewPdpaBtn').innerText = `ดูเอกสาร PDPA (${currentStudent.pdpaStatus})`;
+  } else {
+    document.getElementById('pdpaForm').classList.remove('hidden');
+    document.getElementById('pdpaViewArea').classList.add('hidden');
+  }
+
+  // จัดการแสดงผลฟอร์ม Contract
+  if (currentStudent.contractPdfUrl && currentStudent.contractStatus) {
+    document.getElementById('contractForm').classList.add('hidden');
+    document.getElementById('contractViewArea').classList.remove('hidden');
+    document.getElementById('viewContractBtn').href = currentStudent.contractPdfUrl;
+    document.getElementById('viewContractBtn').innerText = `ดูเอกสารสัญญา (${currentStudent.contractStatus})`;
+  } else {
+    document.getElementById('contractForm').classList.remove('hidden');
+    document.getElementById('contractViewArea').classList.add('hidden');
+  }
+
+  // จัดการแสดงผล Transcript
+  if (currentStudent.transcriptFileUrl && currentStudent.transcriptStatus) {
+    document.getElementById('uploadZone').classList.add('hidden');
+    document.getElementById('transViewArea').classList.remove('hidden');
+    document.getElementById('viewTransBtn').href = currentStudent.transcriptFileUrl;
+    document.getElementById('viewTransBtn').innerText = `ดู Transcript (${currentStudent.transcriptStatus})`;
+  } else {
+    document.getElementById('uploadZone').classList.remove('hidden');
+    document.getElementById('transViewArea').classList.add('hidden');
+  }
+
+  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อ "ผ่าน" ทั้ง 3 รายการ)
+  const isAllPassed = (currentStudent.pdpaStatus === 'ผ่าน' && currentStudent.contractStatus === 'ผ่าน' && currentStudent.transcriptStatus === 'ผ่าน');
   const eduBtn = document.getElementById('eduSystemBtn');
-  if (allPassed) {
-    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90";
+  if (isAllPassed) {
+    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90 cursor-pointer";
   } else {
     eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray cursor-not-allowed";
   }
 }
 
-function updateBadge(elementId, label, status) {
-  const el = document.getElementById(elementId);
-  el.innerText = `${label}: ${status}`;
-  if (status === 'เรียบร้อย') el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
-  else if (status === 'ไม่ผ่าน') el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm bg-red-600";
-  else if (status === 'รอตรวจสอบ') el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
-  else el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm bg-gray-400";
+function setBadge(id, title, status) {
+  const el = document.getElementById(id);
+  const displayStatus = status ? status : 'รอดำเนินการ';
+  el.innerText = `${title}: ${displayStatus}`;
+  if (status === 'ผ่าน') {
+    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
+  } else if (status === 'รอตรวจสอบ') {
+    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
+  } else {
+    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-gray";
+  }
 }
 
 function handleEduSystemClick() {
-  const allPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transStatus === 'เรียบร้อย');
-  if (!allPassed) {
-    Swal.fire({ icon: 'warning', title: 'ยังไม่สามารถเข้าสู่ระบบได้', text: 'กรุณาดำเนินการเอกสารทั้ง 3 ฉบับและรอผลอนุมัติให้เรียบร้อยก่อน' });
+  if (!currentStudent) return;
+  const isAllPassed = (currentStudent.pdpaStatus === 'ผ่าน' && currentStudent.contractStatus === 'ผ่าน' && currentStudent.transcriptStatus === 'ผ่าน');
+  if (!isAllPassed) {
+    Swal.fire({ icon: 'warning', title: 'ยังไม่สามารถเข้าสู่ระบบได้', text: 'เอกสารทั้ง 3 รายการต้องได้รับการตรวจสอบและมีสถานะ "ผ่าน" ครบทั้งหมดก่อน' });
     return;
   }
   window.open('https://reg.catc.or.th', '_blank');
 }
 
-// ----------------- ADMIN FUNCTIONS -----------------
+// บันทึก PDPA (ส่งเข้า action: 'savePdpa' เดิม)
+async function submitPdpa() {
+  const writtenAt = document.getElementById('writtenAt').value.trim();
+  const date = document.getElementById('dateInput').value;
+  if (!writtenAt || !date) {
+    Swal.fire({ icon: 'warning', title: 'กรุณากรอกสถานที่เขียนและวันที่' });
+    return;
+  }
+  if (!savedSignatures.user) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาลงลายมือชื่อนักศึกษาก่อนบันทึก' });
+    return;
+  }
 
+  const formData = {
+    row: currentStudent.row,
+    studentId: currentStudent.studentId,
+    name: currentStudent.name,
+    idCard: currentStudent.idCard,
+    writtenAt: writtenAt,
+    date: date,
+    q1: document.querySelector('input[name="q1"]:checked').value,
+    q2: document.querySelector('input[name="q2"]:checked').value,
+    q3: document.querySelector('input[name="q3"]:checked').value,
+    q4: document.querySelector('input[name="q4"]:checked').value,
+    q5: document.querySelector('input[name="q5"]:checked').value,
+    userSig: savedSignatures.user
+  };
+
+  Swal.fire({ title: 'กำลังสร้างเอกสาร PDF PDPA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'savePdpa', formData: formData })
+    });
+    const res = await response.json();
+    if (res.status === 'success') {
+      currentStudent.pdpaPdfUrl = res.data;
+      currentStudent.pdpaStatus = 'รอตรวจสอบ';
+      renderStudentUI();
+      Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF PDPA สำเร็จ' });
+    } else {
+      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+// บันทึก Contract (ส่งเข้า action: 'saveContract' เดิม)
+async function submitContract() {
+  const contractDate = document.getElementById('contractDate').value;
+  const birthDate = document.getElementById('birthDate').value;
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const addrNo = document.getElementById('addrNo').value.trim();
+  const addrMoo = document.getElementById('addrMoo').value.trim();
+  const addrSoi = document.getElementById('addrSoi').value.trim();
+  const addrRoad = document.getElementById('addrRoad').value.trim();
+  const province = document.getElementById('provinceSelect').value;
+  const amphoe = document.getElementById('amphoeSelect').value;
+  const tambon = document.getElementById('tambonSelect').value;
+  const zipcode = document.getElementById('zipcodeInput').value;
+  const parentName = document.getElementById('parentName').value.trim();
+  const parentPhone = document.getElementById('parentPhone').value.trim();
+
+  if (!contractDate || !birthDate || phone.length !== 10 || !email || !addrNo || !province || !amphoe || !tambon || !parentName || parentPhone.length !== 10) {
+    Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วนและถูกต้อง' });
+    return;
+  }
+  if (!savedSignatures.studentSig || !savedSignatures.parentSig) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาลงลายมือชื่อทั้งนักศึกษาและผู้ปกครอง' });
+    return;
+  }
+
+  const fullAddress = `บ้านเลขที่ ${addrNo} ${addrMoo ? 'หมู่ ' + addrMoo : ''} ${addrSoi ? 'ซอย' + addrSoi : ''} ${addrRoad ? 'ถนน' + addrRoad : ''} ตำบล/แขวง${tambon} อำเภอ/เขต${amphoe} จังหวัด${province} ${zipcode}`.replace(/\s+/g, ' ').trim();
+
+  const formData = {
+    row: currentStudent.row,
+    course: currentStudent.course,
+    contractDate: contractDate,
+    name: currentStudent.name,
+    studentId: currentStudent.studentId,
+    idCard: currentStudent.idCard,
+    birthDate: birthDate,
+    address: fullAddress,
+    phone: phone,
+    email: email,
+    parentName: parentName,
+    parentPhone: parentPhone,
+    studentSig: savedSignatures.studentSig,
+    parentSig: savedSignatures.parentSig
+  };
+
+  Swal.fire({ title: 'กำลังสร้างเอกสาร PDF สัญญาการศึกษา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveContract', formData: formData })
+    });
+    const res = await response.json();
+    if (res.status === 'success') {
+      currentStudent.contractPdfUrl = res.data;
+      currentStudent.contractStatus = 'รอตรวจสอบ';
+      renderStudentUI();
+      Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF สัญญาสำเร็จ' });
+    } else {
+      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+// อัปโหลด Transcript (ส่งเข้า action: 'uploadTranscript' เดิม)
+async function uploadFile() {
+  const fileInput = document.getElementById('fileIn');
+  if (fileInput.files.length === 0) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไฟล์ PDF ก่อนอัปโหลด' });
+    return;
+  }
+  const file = fileInput.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire({ icon: 'warning', title: 'ขนาดไฟล์เกิน 5MB' });
+    return;
+  }
+
+  Swal.fire({ title: 'กำลังอัปโหลดไฟล์ Transcript...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const reader = new FileReader();
+  reader.onload = async function() {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'uploadTranscript',
+          base64: reader.result,
+          fileName: `Transcript_${currentStudent.studentId}_${currentStudent.name}.pdf`,
+          row: currentStudent.row
+        })
+      });
+      const res = await response.json();
+      if (res.status === 'success') {
+        currentStudent.transcriptFileUrl = res.data;
+        currentStudent.transcriptStatus = 'รอตรวจสอบ';
+        renderStudentUI();
+        Swal.fire({ icon: 'success', title: 'อัปโหลด Transcript สำเร็จ' });
+      } else {
+        Swal.fire({ icon: 'error', title: 'อัปโหลดไม่สำเร็จ', text: res.message });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ==========================================
+// 3. ระบบผู้ดูแลระบบ (ADMIN DASHBOARD)
+// ==========================================
 function logoutAdmin() {
   document.getElementById('adminArea').classList.add('hidden');
   document.getElementById('idSearch').value = '';
@@ -90,10 +316,10 @@ function logoutAdmin() {
 }
 
 function renderAdminDashboard() {
-  // นับเฉพาะรายการที่มีการส่งข้อมูลจริง (มีลิงก์) และสถานะเป็น "รอตรวจสอบ"
-  const countPdpa = studentsDB.filter(s => s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ').length;
-  const countContract = studentsDB.filter(s => s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ').length;
-  const countTrans = studentsDB.filter(s => s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ').length;
+  // นับเฉพาะช่องที่มีลิงก์หลักฐานจริง (ไม่เป็นค่าว่าง) และมีสถานะ "รอตรวจสอบ"
+  const countPdpa = adminStudentsList.filter(s => s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ").length;
+  const countContract = adminStudentsList.filter(s => s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ").length;
+  const countTrans = adminStudentsList.filter(s => s.transcriptFileUrl !== "" && s.transcriptStatus === "รอตรวจสอบ").length;
 
   document.getElementById('countPdpa').innerText = countPdpa;
   document.getElementById('countContract').innerText = countContract;
@@ -114,11 +340,11 @@ function renderAdminTable() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '';
 
-  // กรองเฉพาะนักศึกษาที่มีข้อมูลลิงก์จริงและสถานะเป็น "รอตรวจสอบ" ใน Tab นั้น ๆ
-  const filtered = studentsDB.filter(s => {
-    if (currentAdminTab === 'pdpa') return s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ';
-    if (currentAdminTab === 'contract') return s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ';
-    if (currentAdminTab === 'trans') return s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ';
+  // กรองเฉพาะแถวที่มีลิงก์ไฟล์จริง (ไม่ใช่ช่องว่าง) และสถานะเป็น "รอตรวจสอบ"
+  const filtered = adminStudentsList.filter(s => {
+    if (currentAdminTab === 'pdpa') return s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ";
+    if (currentAdminTab === 'contract') return s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ";
+    if (currentAdminTab === 'trans') return s.transcriptFileUrl !== "" && s.transcriptStatus === "รอตรวจสอบ";
     return false;
   });
 
@@ -128,83 +354,79 @@ function renderAdminTable() {
   }
 
   filtered.forEach(s => {
+    const fileUrl = currentAdminTab === 'pdpa' ? s.pdpaPdfUrl : (currentAdminTab === 'contract' ? s.contractPdfUrl : s.transcriptFileUrl);
     tbody.innerHTML += `
       <tr class="hover:bg-gray-50 border-b">
         <td class="p-4 font-mono font-bold">${s.studentId}</td>
         <td class="p-4 font-medium">${s.name}</td>
         <td class="p-4 text-xs text-gray-600">${s.course}</td>
         <td class="p-4 text-center">
-          <button onclick="openDocViewer('${s.studentId}', '${currentAdminTab}')" class="px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold hover:bg-blue-200 transition"><i class="fa-solid fa-eye mr-1"></i> ดูเอกสาร</button>
+          <a href="${fileUrl}" target="_blank" class="inline-block px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold hover:bg-blue-200 transition"><i class="fa-solid fa-eye mr-1"></i> ดูเอกสาร</a>
         </td>
         <td class="p-4 text-center space-x-2">
-          <button onclick="updateDocStatus('${s.studentId}', '${currentAdminTab}', 'เรียบร้อย')" class="px-3 py-1.5 bg-[#128F8B] text-white rounded-lg text-xs font-bold hover:opacity-90 transition"><i class="fa-solid fa-check mr-1"></i> เรียบร้อย</button>
-          <button onclick="updateDocStatus('${s.studentId}', '${currentAdminTab}', 'ไม่ผ่าน')" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition"><i class="fa-solid fa-xmark mr-1"></i> ไม่ผ่าน</button>
+          <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ผ่าน')" class="px-3 py-1.5 bg-[#128F8B] text-white rounded-lg text-xs font-bold hover:opacity-90 transition"><i class="fa-solid fa-check mr-1"></i> เรียบร้อย</button>
+          <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ไม่ผ่าน')" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition"><i class="fa-solid fa-xmark mr-1"></i> ไม่ผ่าน</button>
         </td>
       </tr>
     `;
   });
 }
 
-function openDocViewer(studentId, docType) {
-  reviewingStudentId = studentId;
-  const s = studentsDB.find(x => x.studentId === studentId);
-  const link = docType === 'pdpa' ? s.pdpaLink : (docType === 'contract' ? s.contractLink : s.transLink);
-  
-  document.getElementById('viewerTitle').innerText = `ตรวจสอบเอกสาร (${docType.toUpperCase()}) - ${s.name}`;
-  document.getElementById('viewerBody').innerHTML = `
-    <div class="text-center space-y-3">
-      <p class="text-gray-700 font-medium">กำลังแสดงไฟล์: <span class="font-mono text-theme-green">${link}</span></p>
-      <a href="#" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow hover:bg-blue-700 transition" target="_blank">เปิดไฟล์เอกสารในแท็บใหม่</a>
-    </div>
-  `;
-  document.getElementById('docViewerModal').style.display = 'block';
-}
+async function adminSetStatus(row, docType, decision) {
+  Swal.fire({ title: 'กำลังอัปเดตสถานะใน Google Sheet...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-function closeDocViewer() {
-  document.getElementById('docViewerModal').style.display = 'none';
-}
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'updateAdminStatus',
+        row: row,
+        docType: docType,
+        decision: decision
+      })
+    });
+    const res = await response.json();
 
-function adminReviewAction(action) {
-  closeDocViewer();
-  updateDocStatus(reviewingStudentId, currentAdminTab, action === 'pass' ? 'เรียบร้อย' : 'ไม่ผ่าน');
-}
+    if (res.status === 'success') {
+      const target = adminStudentsList.find(s => s.row === row);
+      if (target) {
+        if (docType === 'pdpa') {
+          target.pdpaStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          if (decision === 'ไม่ผ่าน') target.pdpaPdfUrl = '';
+        } else if (docType === 'contract') {
+          target.contractStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          if (decision === 'ไม่ผ่าน') target.contractPdfUrl = '';
+        } else if (docType === 'trans') {
+          target.transcriptStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          if (decision === 'ไม่ผ่าน') target.transcriptFileUrl = '';
+        }
+      }
 
-// อัปเดตสถานะ: ถ้าเลือก "ไม่ผ่าน" จะทำการล้างค่าลิงก์และสถานะ เพื่อให้ User กลับมาทำใหม่
-function updateDocStatus(studentId, docType, status) {
-  const s = studentsDB.find(x => x.studentId === studentId);
-  if (!s) return;
+      Swal.fire({
+        icon: decision === 'ผ่าน' ? 'success' : 'warning',
+        title: decision === 'ผ่าน' ? 'บันทึกสถานะ "เรียบร้อย (ผ่าน)" แล้ว' : 'บันทึก "ไม่ผ่าน" และล้างข้อมูลเรียบร้อย',
+        text: decision === 'ไม่ผ่าน' ? 'ล้างช่องสถานะและลิงก์ใน Google Sheet แล้ว เพื่อให้นักศึกษากรอกใหม่' : '',
+        timer: 1800,
+        showConfirmButton: false
+      });
 
-  if (docType === 'pdpa') {
-    s.pdpaStatus = status;
-    if (status === 'ไม่ผ่าน') { s.pdpaLink = ''; s.pdpaStatus = ''; }
-  } else if (docType === 'contract') {
-    s.contractStatus = status;
-    if (status === 'ไม่ผ่าน') { s.contractLink = ''; s.contractStatus = ''; }
-  } else if (docType === 'trans') {
-    s.transStatus = status;
-    if (status === 'ไม่ผ่าน') { s.transLink = ''; s.transStatus = ''; }
+      renderAdminDashboard();
+    } else {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: res.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ', text: err.message });
   }
-
-  Swal.fire({
-    icon: status === 'เรียบร้อย' ? 'success' : 'warning',
-    title: `บันทึกสถานะ: "${status}" เรียบร้อย`,
-    text: status === 'ไม่ผ่าน' ? 'ระบบได้ทำการล้างข้อมูลช่องสถานะและลิงก์เรียบร้อยแล้ว เพื่อให้นักศึกษาเข้ามาทำรายการใหม่' : 'อัปเดตสถานะสำเร็จ',
-    timer: 1800,
-    showConfirmButton: false
-  });
-
-  renderAdminDashboard();
 }
 
-// ----------------- TAB & FORM LOGIC (ส่วนของนักศึกษาเดิม) -----------------
+// ==========================================
+// 4. ระบบ UI, Tab, ลายมือชื่อ และข้อมูลที่อยู่ประเทศไทย
+// ==========================================
 function switchTab(tab) {
-  document.getElementById('pdpaSection').classList.add('hidden');
-  document.getElementById('contractSection').classList.add('hidden');
-  document.getElementById('transSection').classList.add('hidden');
-
-  document.getElementById('tabPdpaBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
-  document.getElementById('tabContractBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
-  document.getElementById('tabTransBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  ['pdpaSection', 'contractSection', 'transSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  ['tabPdpaBtn', 'tabContractBtn', 'tabTransBtn'].forEach(id => {
+    document.getElementById(id).className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  });
 
   if (tab === 'pdpa') {
     document.getElementById('pdpaSection').classList.remove('hidden');
@@ -218,18 +440,19 @@ function switchTab(tab) {
   }
 }
 
-let activeSigTarget = null;
-let sigPads = {};
+let modalSignaturePad = null;
+let currentSigField = null;
+let savedSignatures = { user: null, studentSig: null, parentSig: null };
 
-function openModal(target) {
-  activeSigTarget = target;
+function openModal(field) {
+  currentSigField = field;
   document.getElementById('sigModal').style.display = 'block';
   const canvas = document.getElementById('modalCanvas');
-  if (!sigPads[target]) {
-    sigPads[target] = new SignaturePad(canvas, { backgroundColor: 'rgb(255, 255, 255)' });
-  } else {
-    sigPads[target].clear();
-  }
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  canvas.getContext("2d").scale(ratio, ratio);
+  modalSignaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)' });
 }
 
 function closeModal() {
@@ -237,70 +460,88 @@ function closeModal() {
 }
 
 function clearModalSig() {
-  if (sigPads[activeSigTarget]) sigPads[activeSigTarget].clear();
+  if (modalSignaturePad) modalSignaturePad.clear();
 }
 
 function saveModalSig() {
-  if (!sigPads[activeSigTarget] || sigPads[activeSigTarget].isEmpty()) {
-    Swal.fire({ icon: 'warning', title: 'กรุณาลายมือชื่อก่อนบันทึก' });
+  if (!modalSignaturePad || modalSignaturePad.isEmpty()) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาเซ็นชื่อก่อนกดตกลง' });
     return;
   }
-  const dataUrl = sigPads[activeSigTarget].toDataURL();
-  const box = document.getElementById(activeSigTarget === 'user' ? 'userPreview' : (activeSigTarget === 'studentSig' ? 'studentSigPreview' : 'parentSigPreview'));
-  box.innerHTML = `<img src="${dataUrl}" class="h-full object-contain">`;
+  const dataUrl = modalSignaturePad.toDataURL('image/png');
+  savedSignatures[currentSigField] = dataUrl;
+  const previewId = currentSigField === 'user' ? 'userPreview' : (currentSigField === 'studentSig' ? 'studentSigPreview' : 'parentSigPreview');
+  document.getElementById(previewId).innerHTML = `<img src="${dataUrl}" alt="signature">`;
   closeModal();
 }
 
-function submitPdpa() {
-  if (currentStudent) {
-    currentStudent.pdpaStatus = 'รอตรวจสอบ';
-    currentStudent.pdpaLink = 'pdpa_doc.pdf';
-    updateStudentUI();
-    document.getElementById('pdpaForm').classList.add('hidden');
-    document.getElementById('pdpaViewArea').classList.remove('hidden');
-    Swal.fire({ icon: 'success', title: 'บันทึกแบบฟอร์ม PDPA สำเร็จ', text: 'ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบเรียบร้อยแล้ว' });
-  }
-}
+// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล ของประเทศไทย
+async function loadThaiAddress() {
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json');
+    thaiAddressData = await res.json();
+    const provSelect = document.getElementById('provinceSelect');
+    provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
+    thaiAddressData.forEach(p => {
+      provSelect.innerHTML += `<option value="${p.name_th}">${p.name_th}</option>`;
+    });
 
-function submitContract() {
-  const pName = document.getElementById('parentName').value;
-  if (!pName) {
-    Swal.fire({ icon: 'warning', title: 'กรุณากรอกชื่อผู้ปกครอง' });
-    return;
-  }
-  if (currentStudent) {
-    currentStudent.contractStatus = 'รอตรวจสอบ';
-    currentStudent.contractLink = 'contract_doc.pdf';
-    updateStudentUI();
-    document.getElementById('contractForm').classList.add('hidden');
-    document.getElementById('contractViewArea').classList.remove('hidden');
-    Swal.fire({ icon: 'success', title: 'บันทึกสัญญาการศึกษาสำเร็จ', text: 'ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบเรียบร้อยแล้ว' });
-  }
-}
+    provSelect.addEventListener('change', function() {
+      const amphoeSelect = document.getElementById('amphoeSelect');
+      const tambonSelect = document.getElementById('tambonSelect');
+      document.getElementById('zipcodeInput').value = '';
+      tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+      tambonSelect.disabled = true;
 
-function uploadFile() {
-  const fileInput = document.getElementById('fileIn');
-  if (fileInput.files.length === 0) {
-    Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไฟล์ PDF ก่อนอัปโหลด' });
-    return;
-  }
-  if (currentStudent) {
-    currentStudent.transStatus = 'รอตรวจสอบ';
-    currentStudent.transLink = fileInput.files[0].name;
-    updateStudentUI();
-    document.getElementById('uploadZone').classList.add('hidden');
-    document.getElementById('transViewArea').classList.remove('hidden');
-    Swal.fire({ icon: 'success', title: 'อัปโหลด Transcript สำเร็จ', text: 'ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบเรียบร้อยแล้ว' });
+      const selectedProv = thaiAddressData.find(p => p.name_th === this.value);
+      if (selectedProv) {
+        amphoeSelect.disabled = false;
+        amphoeSelect.classList.remove('bg-gray-100');
+        amphoeSelect.classList.add('bg-white');
+        amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
+        selectedProv.amphure.forEach(a => {
+          amphoeSelect.innerHTML += `<option value="${a.name_th}">${a.name_th}</option>`;
+        });
+      } else {
+        amphoeSelect.disabled = true;
+      }
+    });
+
+    document.getElementById('amphoeSelect').addEventListener('change', function() {
+      const tambonSelect = document.getElementById('tambonSelect');
+      document.getElementById('zipcodeInput').value = '';
+      const selectedProv = thaiAddressData.find(p => p.name_th === provSelect.value);
+      const selectedAmp = selectedProv ? selectedProv.amphure.find(a => a.name_th === this.value) : null;
+      if (selectedAmp) {
+        tambonSelect.disabled = false;
+        tambonSelect.classList.remove('bg-gray-100');
+        tambonSelect.classList.add('bg-white');
+        tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+        selectedAmp.tambon.forEach(t => {
+          tambonSelect.innerHTML += `<option value="${t.name_th}" data-zip="${t.zip_code}">${t.name_th}</option>`;
+        });
+      } else {
+        tambonSelect.disabled = true;
+      }
+    });
+
+    document.getElementById('tambonSelect').addEventListener('change', function() {
+      const selectedOpt = this.options[this.selectedIndex];
+      document.getElementById('zipcodeInput').value = selectedOpt.getAttribute('data-zip') || '';
+    });
+  } catch (e) {
+    console.error("โหลดข้อมูลที่อยู่ไม่สำเร็จ", e);
   }
 }
 
 window.onload = function() {
-  document.getElementById('dateInput').valueAsDate = new Date();
-  document.getElementById('contractDate').valueAsDate = new Date();
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').value = today;
+  document.getElementById('contractDate').value = today;
   
-  const provSelect = document.getElementById('provinceSelect');
-  if (provSelect) {
-    provSelect.innerHTML = '<option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option><option value="นนทบุรี">นนทบุรี</option><option value="สมุทรปราการ">สมุทรปราการ</option>';
-    document.getElementById('zipcodeInput').value = '10110';
-  }
+  document.getElementById('parentName').addEventListener('input', function() {
+    document.getElementById('parentNamePreview').innerText = this.value.trim() || 'ผู้ปกครอง';
+  });
+
+  loadThaiAddress();
 };
