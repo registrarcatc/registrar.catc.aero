@@ -11,6 +11,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   await initThaiAddress();
 });
 
+// ฟังก์ชันสลับ Tab
+function switchTab(tabName) {
+  const sections = {
+    pdpa: document.getElementById('pdpaSection'),
+    contract: document.getElementById('contractSection'),
+    trans: document.getElementById('transSection')
+  };
+  const buttons = {
+    pdpa: document.getElementById('tabPdpaBtn'),
+    contract: document.getElementById('tabContractBtn'),
+    trans: document.getElementById('tabTransBtn')
+  };
+
+  Object.keys(sections).forEach(key => {
+    if (key === tabName) {
+      sections[key].classList.remove('hidden');
+      buttons[key].className = "flex-1 py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 transition bg-blue-50";
+    } else {
+      sections[key].classList.add('hidden');
+      buttons[key].className = "flex-1 py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-blue-900";
+    }
+  });
+}
+
 async function initThaiAddress() {
   const provSelect = document.getElementById('provinceSelect');
   const amphoeSelect = document.getElementById('amphoeSelect');
@@ -117,7 +141,7 @@ function showResult(data) {
   document.getElementById('resName2').innerText = data.name;
   document.getElementById('resName3').innerText = data.name;
   document.getElementById('resId').innerText = data.studentId;
-  document.getElementById('resCourse').innerText = data.course || "-"; // แสดงหลักสูตรจาก Sheet
+  document.getElementById('resCourse').innerText = data.course || "-";
   
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -159,15 +183,21 @@ function showResult(data) {
     document.getElementById('contractViewArea').classList.add('hidden');
   }
 
-  // 3. Transcript
+  // 3. Transcript (แก้ไขให้เช็คสถานะและแสดงผลถูกต้อง)
   document.getElementById('transBadge').innerText = "Transcript: " + (data.transcriptStatus || "ยังไม่ส่ง");
   document.getElementById('transBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.transcriptStatus);
   
   const uz = document.getElementById('uploadZone');
+  const transView = document.getElementById('transViewArea');
+  
   uz.classList.add('hidden');
-  if (!data.transcriptStatus || data.transcriptStatus === "ยังไม่ส่ง" || data.transcriptStatus === "แก้ไข") uz.classList.remove('hidden');
+  transView.classList.add('hidden');
+
+  if (!data.transcriptStatus || data.transcriptStatus === "ยังไม่ส่ง" || data.transcriptStatus === "แก้ไข") {
+    uz.classList.remove('hidden');
+  }
   if (data.transcriptFileUrl) {
-    document.getElementById('transViewArea').classList.remove('hidden');
+    transView.classList.remove('hidden');
     document.getElementById('viewTransBtn').href = data.transcriptFileUrl;
   }
 }
@@ -258,7 +288,7 @@ async function submitContract() {
 
   const formData = {
     row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
-    course: current.course, // ดึงหลักสูตรจากข้อมูลที่ค้นหามา (คอลัมน์ D)
+    course: current.course,
     contractDate, birthDate, address, phone, email, parentName, parentPhone,
     studentSig: savedSigs.studentSig, parentSig: savedSigs.parentSig
   };
