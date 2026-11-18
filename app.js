@@ -262,7 +262,7 @@ function handleEduSystemClick() {
           <p class="text-center font-bold text-blue-900 text-lg mb-2">ยินดีต้อนรับสู่ระบบบริหารการศึกษา</p>
           <hr class="border-blue-200">
           <div class="space-y-2 text-sm text-gray-700">
-            <p><strong>🌐 Website:</strong> <a href="http://www.reg.or.th" target="_blank" class="text-blue-600 underline">www.reg.or.th</a></p>
+            <p><strong>🌐 Website:</strong> <a href="https://reg.catc.or.th" target="_blank" class="text-blue-600 underline">https://reg.catc.or.th</a></p>
             <p><strong>👤 Username:</strong> <span class="font-mono bg-white px-2 py-1 rounded border text-blue-900 font-bold">${studentId}</span></p>
             <p><strong>🔑 Password:</strong> <span class="font-mono bg-white px-2 py-1 rounded border text-blue-900 font-bold">${password5}</span></p>
           </div>
@@ -274,7 +274,7 @@ function handleEduSystemClick() {
       cancelButtonText: 'ปิด',
     }).then((result) => {
       if (result.isConfirmed) {
-        window.open('http://www.reg.or.th', '_blank');
+        window.open('https://reg.catc.or.th', '_blank');
       }
     });
   }
