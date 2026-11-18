@@ -27,10 +27,10 @@ function switchTab(tabName) {
   Object.keys(sections).forEach(key => {
     if (key === tabName) {
       sections[key].classList.remove('hidden');
-      buttons[key].className = "flex-1 py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 transition bg-blue-50";
+      buttons[key].className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 transition bg-blue-50 text-xs md:text-base";
     } else {
       sections[key].classList.add('hidden');
-      buttons[key].className = "flex-1 py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-blue-900";
+      buttons[key].className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-blue-900 text-xs md:text-base";
     }
   });
 }
@@ -161,7 +161,7 @@ function showResult(data) {
 
   // 1. PDPA
   document.getElementById('pdpaBadge').innerText = "PDPA: " + (data.pdpaStatus || "ยังไม่ส่ง");
-  document.getElementById('pdpaBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.pdpaStatus);
+  document.getElementById('pdpaBadge').className = "px-3 py-1.5 rounded-full text-white text-xs font-bold truncate shadow-sm " + getBadgeClass(data.pdpaStatus);
   if(data.pdpaPdfUrl) {
     document.getElementById('pdpaForm').classList.add('hidden');
     document.getElementById('pdpaViewArea').classList.remove('hidden');
@@ -173,7 +173,7 @@ function showResult(data) {
 
   // 2. Contract
   document.getElementById('contractBadge').innerText = "Contract: " + (data.contractStatus || "ยังไม่ส่ง");
-  document.getElementById('contractBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.contractStatus);
+  document.getElementById('contractBadge').className = "px-3 py-1.5 rounded-full text-white text-xs font-bold truncate shadow-sm " + getBadgeClass(data.contractStatus);
   if(data.contractPdfUrl) {
     document.getElementById('contractForm').classList.add('hidden');
     document.getElementById('contractViewArea').classList.remove('hidden');
@@ -185,7 +185,7 @@ function showResult(data) {
 
   // 3. Transcript
   document.getElementById('transBadge').innerText = "Transcript: " + (data.transcriptStatus || "ยังไม่ส่ง");
-  document.getElementById('transBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.transcriptStatus);
+  document.getElementById('transBadge').className = "px-3 py-1.5 rounded-full text-white text-xs font-bold truncate shadow-sm " + getBadgeClass(data.transcriptStatus);
   
   const uz = document.getElementById('uploadZone');
   const transView = document.getElementById('transViewArea');
@@ -200,12 +200,44 @@ function showResult(data) {
   }
 }
 
+// ฟังก์ชันช่วยแสดง Loading พร้อมเปอร์เซ็นต์ % ความสำเร็จ
+function showProgressLoading(titleText) {
+  let timerInterval;
+  let progress = 0;
+  Swal.fire({
+    title: titleText,
+    html: `
+      <div class="w-full bg-gray-200 rounded-full h-4 mb-2 overflow-hidden">
+        <div id="progressBar" class="bg-blue-600 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+      </div>
+      <b id="progressText" class="text-blue-900 text-lg">0%</b>
+    `,
+    allowOutsideClick: false,
+    showConfirmButton: false,
+    didOpen: () => {
+      const b = Swal.getHtmlContainer();
+      const progressB = b.querySelector('#progressBar');
+      const progressT = b.querySelector('#progressText');
+      
+      timerInterval = setInterval(() => {
+        progress += Math.floor(Math.random() * 15) + 10;
+        if (progress > 90) progress = 90; // ค้างไว้ที่ 90% จนกว่า API จะตอบกลับ
+        progressB.style.width = progress + '%';
+        progressT.innerText = progress + '%';
+      }, 250);
+    },
+    willClose: () => {
+      clearInterval(timerInterval);
+    }
+  });
+}
+
 async function submitPdpa() {
   const dateVal = document.getElementById('dateInput').value;
   if (!dateVal) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่', 'warning');
   if (!savedSigs.user) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อนักศึกษา', 'warning');
 
-  Swal.fire({ title: 'กำลังสร้าง PDF PDPA...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  showProgressLoading('กำลังสร้างเอกสาร PDF PDPA...');
 
   const formData = {
     row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
@@ -218,8 +250,16 @@ async function submitPdpa() {
     userSig: savedSigs.user
   };
 
-  await callApi('savePdpa', { formData });
-  Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึก PDPA เรียบร้อยแล้ว', timer: 2000 }).then(() => search());
+  try {
+    await callApi('savePdpa', { formData });
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressText').innerText = '100% สำเร็จ!';
+    setTimeout(() => {
+      Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึก PDPA เรียบร้อยแล้ว', timer: 1500, showConfirmButton: false }).then(() => search());
+    }, 400);
+  } catch (e) {
+    Swal.close();
+  }
 }
 
 async function submitContract() {
@@ -279,7 +319,7 @@ async function submitContract() {
 
   const address = fullAddressParts.join(' ');
 
-  Swal.fire({ title: 'กำลังสร้าง PDF สัญญา...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  showProgressLoading('กำลังสร้างเอกสาร PDF สัญญาการศึกษา...');
 
   const formData = {
     row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
@@ -288,20 +328,36 @@ async function submitContract() {
     studentSig: savedSigs.studentSig, parentSig: savedSigs.parentSig
   };
 
-  await callApi('saveContract', { formData });
-  Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกสัญญาการศึกษาเรียบร้อยแล้ว', timer: 2000 }).then(() => search());
+  try {
+    await callApi('saveContract', { formData });
+    document.getElementById('progressBar').style.width = '100%';
+    document.getElementById('progressText').innerText = '100% สำเร็จ!';
+    setTimeout(() => {
+      Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'บันทึกสัญญาการศึกษาเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false }).then(() => search());
+    }, 400);
+  } catch (e) {
+    Swal.close();
+  }
 }
 
 async function uploadFile() {
   const file = document.getElementById('fileIn').files[0];
   if (!file) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกไฟล์ PDF', 'info');
 
-  Swal.fire({ title: 'กำลังอัปโหลด...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  showProgressLoading('กำลังอัปโหลดเอกสาร Transcript...');
 
   const reader = new FileReader();
   reader.onload = async (e) => {
-    await callApi('uploadTranscript', { base64: e.target.result, fileName: file.name, row: current.row });
-    Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'อัปโหลดไฟล์เรียบร้อยแล้ว', timer: 2000 }).then(() => search());
+    try {
+      await callApi('uploadTranscript', { base64: e.target.result, fileName: file.name, row: current.row });
+      document.getElementById('progressBar').style.width = '100%';
+      document.getElementById('progressText').innerText = '100% สำเร็จ!';
+      setTimeout(() => {
+        Swal.fire({ icon: 'success', title: 'สำเร็จ', text: 'อัปโหลดไฟล์เรียบร้อยแล้ว', timer: 1500, showConfirmButton: false }).then(() => search());
+      }, 400);
+    } catch (err) {
+      Swal.close();
+    }
   };
   reader.readAsDataURL(file);
 }
