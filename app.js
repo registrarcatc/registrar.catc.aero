@@ -6,6 +6,7 @@ let modalPad;
 let activeType = '';
 let savedSigs = { user: null, studentSig: null, parentSig: null };
 let thaiAddressData = [];
+let isAllCompleted = false; // ตัวแปรเก็บสถานะความพร้อมของเอกสารทั้ง 3
 
 document.addEventListener("DOMContentLoaded", async () => {
   await initThaiAddress();
@@ -124,31 +125,22 @@ async function search() {
   const id = document.getElementById('idSearch').value;
   if (id.length !== 13) return Swal.fire('แจ้งเตือน', 'กรุณากรอกเลขบัตร 13 หลัก', 'warning');
   
-  // --- [เพิ่มเข้ามา] ล้างข้อมูลและรูปลายเซ็นของคนก่อนหน้าทันทีเพื่อความปลอดภัย ---
+  // ล้างข้อมูลเก่าเพื่อความปลอดภัย
   current = null;
   savedSigs = { user: null, studentSig: null, parentSig: null };
+  isAllCompleted = false;
   
-  // ล้างภาพตัวอย่างลายเซ็นบนหน้าจอ
   const userPrev = document.getElementById('userPreview');
   if (userPrev) userPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
-  
   const studentSigPrev = document.getElementById('studentSigPreview');
   if (studentSigPrev) studentSigPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
-  
   const parentSigPrev = document.getElementById('parentSigPreview');
   if (parentSigPrev) parentSigPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
   
-  // รีเซ็ตชื่อผู้ปกครองและพยาน (ถ้ามี)
   const parentNameInput = document.getElementById('parentName');
   if (parentNameInput) parentNameInput.value = '';
   const parentNamePrev = document.getElementById('parentNamePreview');
   if (parentNamePrev) parentNamePrev.innerText = 'ผู้ปกครอง';
-  
-  const w1NameInput = document.getElementById('w1Name');
-  if (w1NameInput) w1NameInput.value = '';
-  const w2NameInput = document.getElementById('w2Name');
-  if (w2NameInput) w2NameInput.value = '';
-  // -------------------------------------------------------------
 
   Swal.fire({ title: 'กำลังค้นหา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
@@ -160,21 +152,19 @@ async function search() {
   showResult(data);
 }
 
-// ฟังก์ชันจัดการข้อความและสีของสถานะทั้ง 3 ส่วน
 function getStatusDisplay(rawStatus) {
   const status = (rawStatus || "").toString().trim();
   
   if (status === "เรียบร้อย" || status === "ผ่าน") {
-    return { text: "เรียบร้อย", colorClass: "status-green" };
+    return { text: "เรียบร้อย", colorClass: "status-green", isDone: true };
   }
   if (status === "รอตรวจสอบ") {
-    return { text: "รอตรวจสอบ", colorClass: "status-purple" };
+    return { text: "รอตรวจสอบ", colorClass: "status-purple", isDone: false };
   }
   if (status === "-") {
-    return { text: "-", colorClass: "status-gray" };
+    return { text: "-", colorClass: "status-gray", isDone: true }; // ขีดกลางถือว่าผ่านเงื่อนไข
   }
-  // กรณีว่าง, "ยังไม่ส่ง", "รอแนบเอกสาร", "รอแนบเเอกสาร", "แก้ไข" หรืออื่นๆ ให้แสดงเป็น "รอดำเนินการ" สีเหลือง
-  return { text: "รอดำเนินการ", colorClass: "status-yellow" };
+  return { text: "รอดำเนินการ", colorClass: "status-yellow", isDone: false };
 }
 
 function showResult(data) {
@@ -236,6 +226,57 @@ function showResult(data) {
   } else {
     uz.classList.remove('hidden');
     transView.classList.add('hidden');
+  }
+
+  // ตรวจสอบว่าทั้ง 3 ส่วนสถานะเป็น "เรียบร้อย" (หรือผ่าน/-) ทั้งหมดหรือไม่
+  isAllCompleted = pdpaInfo.isDone && contractInfo.isDone && transInfo.isDone;
+  
+  const eduBtn = document.getElementById('eduSystemBtn');
+  if (isAllCompleted) {
+    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90 cursor-pointer";
+  } else {
+    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray hover:opacity-90 cursor-pointer";
+  }
+}
+
+// ฟังก์ชันเมื่อคลิกปุ่ม "ระบบบริหารการศึกษา"
+function handleEduSystemClick() {
+  if (!isAllCompleted) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'ยังไม่สามารถเข้าสู่ระบบได้',
+      text: 'โปรดดำเนินการทั้ง 3 เอกสารให้เรียบร้อย เพื่อเข้าสู่ระบบบริหารการศึกษา',
+      confirmButtonText: 'ตกลง',
+      confirmButtonColor: '#1e3a8a'
+    });
+  } else {
+    // ดึงรหัสนักศึกษา และเลขท้ายบัตรประชาชน 5 หลัก
+    const studentId = current.studentId || "-";
+    const idCardFull = (current.idCard || "").toString().trim();
+    const password5 = idCardFull.length >= 5 ? idCardFull.slice(-5) : idCardFull;
+
+    Swal.fire({
+      title: 'ยินดีต้อนรับ',
+      html: `
+        <div class="bg-blue-50 p-6 rounded-2xl border border-blue-100 text-left space-y-3 shadow-inner">
+          <p class="text-center font-bold text-blue-900 text-lg mb-2">ยินดีต้อนรับสู่ระบบบริหารการศึกษา</p>
+          <hr class="border-blue-200">
+          <div class="space-y-2 text-sm text-gray-700">
+            <p><strong>🌐 Website:</strong> <a href="http://www.reg.or.th" target="_blank" class="text-blue-600 underline">www.reg.or.th</a></p>
+            <p><strong>👤 Username:</strong> <span class="font-mono bg-white px-2 py-1 rounded border text-blue-900 font-bold">${studentId}</span></p>
+            <p><strong>🔑 Password:</strong> <span class="font-mono bg-white px-2 py-1 rounded border text-blue-900 font-bold">${password5}</span></p>
+          </div>
+        </div>
+      `,
+      confirmButtonText: 'เข้าสู่เว็บไซต์',
+      confirmButtonColor: '#10b981',
+      showCancelButton: true,
+      cancelButtonText: 'ปิด',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        window.open('http://www.reg.or.th', '_blank');
+      }
+    });
   }
 }
 
