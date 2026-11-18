@@ -12,6 +12,7 @@
     body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; }
     .status-gray { background-color: #9ca3af; } 
     .status-yellow { background-color: #f59e0b; } 
+    .status-purple { background-color: #8b5cf6; }
     .status-green { background-color: #10b981; }
     .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); }
     .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 1.5rem; width: 95%; max-width: 500px; text-align: center; }
@@ -36,7 +37,7 @@
       </div>
 
       <div id="resultArea" class="hidden p-4 md:p-10 space-y-6 md:space-y-8">
-        <!-- แสดงข้อมูลนักศึกษาและ Status ทั้ง 3 แบบ Grid บนมือถือไม่ตกบรรทัด -->
+        <!-- แสดงข้อมูลนักศึกษาและ Status ทั้ง 3 -->
         <div class="bg-blue-50 p-5 md:p-6 rounded-3xl border border-blue-100 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><span class="text-xs font-bold text-blue-400 uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-lg md:text-xl font-bold text-blue-900">-</p></div>
@@ -51,14 +52,14 @@
           </div>
         </div>
 
-        <!-- Tab Navigation (ปุ่มสลับแท็บ Responsive) -->
+        <!-- Tab Navigation -->
         <div class="flex border-b border-gray-200 text-xs md:text-base">
           <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-blue-900 border-b-4 border-blue-900 transition bg-blue-50">1. PDPA</button>
           <button onclick="switchTab('contract')" id="tabContractBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-blue-900">2. สัญญาการศึกษา</button>
           <button onclick="switchTab('trans')" id="tabTransBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-blue-900">3. อัปโหลด Transcript</button>
         </div>
 
-        <!-- 1. ส่วน PDPA (Content) -->
+        <!-- 1. ส่วน PDPA -->
         <div id="pdpaSection" class="space-y-6 tab-content">
           <h2 class="text-lg md:text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">1. แบบฟอร์มแสดงความยินยอม (PDPA)</h2>
           <div id="pdpaForm" class="space-y-6">
@@ -101,7 +102,7 @@
           <div id="pdpaViewArea" class="hidden"><a id="viewPdpaBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-green-100 text-green-800 rounded-2xl font-bold border-2 border-green-200">ดูเอกสาร PDPA ที่บันทึกแล้ว</a></div>
         </div>
 
-        <!-- 2. ส่วน Contract (Content) -->
+        <!-- 2. ส่วน Contract -->
         <div id="contractSection" class="space-y-6 tab-content hidden">
           <h2 class="text-lg md:text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">2. สัญญาการศึกษา (Contract)</h2>
           <div id="contractForm" class="space-y-6">
@@ -201,7 +202,7 @@
           <div id="contractViewArea" class="hidden"><a id="viewContractBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-indigo-100 text-indigo-800 rounded-2xl font-bold border-2 border-indigo-200">ดูเอกสารสัญญาที่บันทึกแล้ว</a></div>
         </div>
 
-        <!-- 3. ส่วน Transcript (Content) -->
+        <!-- 3. ส่วน Transcript -->
         <div id="transSection" class="space-y-6 tab-content hidden">
           <h2 class="text-lg md:text-xl font-bold text-blue-900 border-l-8 border-blue-900 pl-4">3. อัปโหลดเอกสาร (Transcript)</h2>
           <div id="uploadZone" class="p-6 md:p-10 border-4 border-dashed rounded-3xl bg-gray-50 text-center">
