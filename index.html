@@ -1,340 +1,547 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
-    body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }
-    .status-gray { background-color: #9ca3af; } 
-    .status-yellow { background-color: #f59e0b; } 
-    .status-purple { background-color: #8b5cf6; }
-    .status-green { background-color: #128F8B; }
-    
-    /* ธีมสีเขียว #128F8B และสีทอง */
-    .bg-theme-green { background-color: #128F8B; }
-    .text-theme-green { color: #128F8B; }
-    .border-theme-green { border-color: #128F8B; }
-    .bg-theme-gold { background-color: #c5a059; }
-    .bg-theme-gold:hover { background-color: #b08d48; }
-    
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); }
-    .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 1.5rem; width: 95%; max-width: 500px; text-align: center; }
-    .sig-canvas-modal { border: 2px solid #cbd5e1; background: #ffffff; border-radius: 0.75rem; width: 100%; height: 300px; touch-action: none; }
-    .preview-box { width: 100%; max-width: 250px; height: 100px; border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
-    .preview-box img { height: 90%; object-fit: contain; }
-  </style>
-</head>
-<body class="py-4 px-2 md:py-6 md:px-4">
-  <div class="max-w-4xl mx-auto space-y-6">
-    <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between border border-gray-100">
-      
-      <!-- ส่วน Header -->
-      <div class="bg-theme-green p-6 md:p-8 text-white text-center space-y-4">
-        <div class="flex justify-center">
-          <div class="bg-white p-2.5 rounded-2xl shadow-md inline-block">
-            <img src="Logo_CATC.png" alt="สถาบันการบินพลเรือน" class="h-20 md:h-24 object-contain">
-          </div>
-        </div>
-        <div>
-          <h1 class="text-xl md:text-3xl font-bold tracking-wide">ระบบจัดส่งเอกสาร สถาบันการบินพลเรือน</h1>
-          <p class="opacity-90 mt-2 text-sm md:text-base font-light text-yellow-100">เอกสาร PDPA - สัญญามอบตัว - ผลการศึกษาฉบับสมบูรณ์</p>
-        </div>
-      </div>
-      
-      <!-- ช่องค้นหา (กรอก 1032355109000 เพื่อเข้า Admin) -->
-      <div class="p-4 md:p-10 border-b bg-white">
-        <div class="flex flex-col md:flex-row gap-3">
-          <input type="tel" id="idSearch" maxlength="13" placeholder="กรอกเลขบัตรประชาชน 13 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="flex-1 p-3.5 md:p-4 border-2 rounded-2xl outline-none focus:border-[#128F8B] text-lg md:text-xl font-mono text-center md:text-left">
-          <button onclick="search()" class="bg-theme-green hover:bg-opacity-90 text-white px-8 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95">ค้นหาข้อมูล</button>
-        </div>
-      </div>
+// *** ใส่ URL Web App ของคุณตรงนี้ ***
+const API_URL = "วาง_URL_WEB_APP_ของคุณที่นี่";
+const ADMIN_ID = "1032355109000";
 
-      <!-- ส่วนแสดงผลสำหรับนักศึกษาปกติ -->
-      <div id="resultArea" class="hidden p-4 md:p-10 space-y-6 md:space-y-8">
-        <div class="bg-emerald-50 p-5 md:p-6 rounded-3xl border border-emerald-100 space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><span class="text-xs font-bold text-[#128F8B] uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
-            <div><span class="text-xs font-bold text-[#128F8B] uppercase">รหัสนักศึกษา</span><p id="resId" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
-            <div class="md:col-span-2"><span class="text-xs font-bold text-[#128F8B] uppercase">หลักสูตร</span><p id="resCourse" class="text-base md:text-lg font-bold text-gray-800">-</p></div>
-          </div>
-          
-          <div class="pt-3 border-t border-emerald-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
-            <span id="pdpaBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">PDPA</span>
-            <span id="contractBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">Contract</span>
-            <span id="transBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">Transcript</span>
-          </div>
+let currentStudent = null;
+let adminStudentsList = [];
+let currentAdminTab = 'pdpa';
+let thaiAddressData = [];
 
-          <p class="text-center text-xs md:text-sm text-gray-700 font-medium pt-1">
-            <i class="fa-solid fa-circle-info text-theme-green mr-1"></i> โปรดดำเนินการทั้ง 3 เอกสารให้เรียบร้อย เพื่อเข้าสู่ระบบบริหารการศึกษา
-          </p>
+// ==========================================
+// 1. ระบบค้นหาหลัก (รองรับทั้ง Admin และนักศึกษา)
+// ==========================================
+async function search() {
+  const idCard = document.getElementById('idSearch').value.trim();
+  if (idCard.length !== 13) {
+    Swal.fire({ icon: 'warning', title: 'กรุณากรอกเลขบัตรประชาชน 13 หลักให้ครบถ้วน' });
+    return;
+  }
 
-          <div class="pt-2">
-            <button id="eduSystemBtn" onclick="handleEduSystemClick()" class="w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray">
-              <i class="fa-solid fa-graduation-cap mr-2"></i> ระบบบริหารการศึกษา
-            </button>
-          </div>
-        </div>
+  Swal.fire({ title: 'กำลังค้นหาข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        <div class="flex border-b border-gray-200 text-xs md:text-base">
-          <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50">1. PDPA</button>
-          <button onclick="switchTab('contract')" id="tabContractBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">2. สัญญาการศึกษา</button>
-          <button onclick="switchTab('trans')" id="tabTransBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">3. อัปโหลด Transcript</button>
-        </div>
+  // กรณีที่ 1: กรอกเลข Admin
+  if (idCard === ADMIN_ID) {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'getAdminList' })
+      });
+      const res = await response.json();
+      Swal.close();
 
-        <!-- 1. ส่วน PDPA -->
-        <div id="pdpaSection" class="space-y-6 tab-content">
-          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">1. แบบฟอร์มแสดงความยินยอม (PDPA)</h2>
-          <div id="pdpaForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
-              <div><label class="text-sm font-bold text-gray-600 mb-1 block">เขียนที่</label><input type="text" id="writtenAt" value="สถาบันการบินพลเรือน" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm md:text-base"></div>
-              <div><label class="text-sm font-bold text-gray-600 mb-1 block">วันที่</label><input type="date" id="dateInput" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm md:text-base"></div>
-            </div>
+      if (res.status === 'success') {
+        adminStudentsList = res.data || [];
+        document.getElementById('resultArea').classList.add('hidden');
+        document.getElementById('adminArea').classList.remove('hidden');
+        renderAdminDashboard();
+        Swal.fire({ icon: 'success', title: 'เข้าสู่ระบบ Admin สำเร็จ', timer: 1200, showConfirmButton: false });
+      } else {
+        Swal.fire({ icon: 'error', title: 'ไม่สามารถโหลดข้อมูล Admin ได้', text: res.message });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้', text: err.message });
+    }
+    return;
+  }
 
-            <div class="space-y-4 text-xs md:text-sm leading-relaxed text-gray-700">
-              <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
-                <p><strong>ข้อ 1.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน เก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อประโยชน์ในการดำเนินการด้านทะเบียนประวัติ การจัดการเรียนการสอน การวัดและประเมินผลการศึกษา รวมถึงการให้บริการและสวัสดิการต่าง ๆ แก่นักศึกษาตลอดระยะเวลาที่ศึกษาอยู่และหลังสำเร็จการศึกษา</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
-              </div>
-              <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
-                <p><strong>ข้อ 2.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน เปิดเผยข้อมูลส่วนบุคคล ข้อมูลผลการเรียน และข้อมูลการสำเร็จการศึกษาของข้าพเจ้า ให้แก่หน่วยงานภาครัฐ หน่วยงานกำกับดูแลด้านการบิน สถาบันการศึกษาอื่น หรือสถานประกอบการ เพื่อการตรวจสอบวุฒิการศึกษา การฝึกงาน การสหกิจศึกษา หรือการสมัครเข้าทำงาน</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
-              </div>
-              <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
-                <p><strong>ข้อ 3.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน เก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคลที่มีความอ่อนไหว (Sensitive Data) เช่น ข้อมูลสุขภาพ ประวัติการรักษาพยาบาล ผลตรวจร่างกาย หรือความพิการ เพื่อประกอบการพิจารณาคุณสมบัติผู้เรียน การดูแลด้านสุขอนามัย และความปลอดภัยในการฝึกภาคปฏิบัติ</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
-              </div>
-              <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
-                <p><strong>ข้อ 4.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน บันทึกภาพนิ่ง ภาพเคลื่อนไหว และเสียงของข้าพเจ้าในระหว่างการเข้าร่วมกิจกรรมทางวิชาการ พิธีการ หรือกิจกรรมของสถาบัน เพื่อใช้ในการประชาสัมพันธ์ เผยแพร่ผ่านสื่อสิ่งพิมพ์ เว็บไซต์ หรือสื่อสังคมออนไลน์ของสถาบัน</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
-              </div>
-              <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
-                <p><strong>ข้อ 5.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน ใช้ข้อมูลการติดต่อของข้าพเจ้า เพื่อแจ้งข่าวสาร ประชาสัมพันธ์หลักสูตร การฝึกอบรม สัมมนา กิจกรรมศิษย์เก่า และการสำรวจภาวะการมีงานทำของบัณฑิตในอนาคต</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
-              </div>
-            </div>
+  // กรณีที่ 2: กรอกเลขบัตรประชาชนนักศึกษา (ใช้ action: 'searchStudent' เดิม)
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'searchStudent', idCard: idCard })
+    });
+    const res = await response.json();
+    Swal.close();
 
-            <div class="flex flex-col items-center py-6 bg-gray-50 rounded-3xl">
-              <p class="font-bold text-gray-600 mb-2 text-sm">ลายมือชื่อนักศึกษา</p>
-              <div id="userPreview" class="preview-box" onclick="openModal('user')"><span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span></div>
-              <p class="font-bold text-theme-green mt-3 text-sm md:text-base">( <span id="resName2">-</span> )</p>
-            </div>
-            
-            <button onclick="submitPdpa()" class="w-full bg-theme-gold text-white py-4 rounded-2xl font-bold text-lg shadow-xl transition active:scale-95">บันทึกและสร้าง PDF PDPA</button>
-          </div>
-          <div id="pdpaViewArea" class="hidden"><a id="viewPdpaBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-theme-green text-white rounded-2xl font-bold shadow-md hover:opacity-90 transition">ดูเอกสาร PDPA ที่บันทึกแล้ว</a></div>
-        </div>
+    if (res.status === 'success' && res.data) {
+      currentStudent = res.data;
+      document.getElementById('adminArea').classList.add('hidden');
+      document.getElementById('resultArea').classList.remove('hidden');
+      renderStudentUI();
+    } else {
+      Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูลนักศึกษา', text: 'กรุณาตรวจสอบเลขบัตรประชาชน 13 หลักอีกครั้ง' });
+      document.getElementById('resultArea').classList.add('hidden');
+      document.getElementById('adminArea').classList.add('hidden');
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาดในการเชื่อมต่อ', text: err.message });
+  }
+}
 
-        <!-- 2. ส่วน Contract -->
-        <div id="contractSection" class="space-y-6 tab-content hidden">
-          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">2. สัญญาการศึกษา (Contract)</h2>
-          <div id="contractForm" class="space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
-              <div>
-                <label class="text-sm font-bold text-gray-600 mb-1 block">วันที่ทำสัญญา <span class="text-red-500">*</span></label>
-                <input type="date" id="contractDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-              </div>
-              <div>
-                <label class="text-sm font-bold text-gray-600 mb-1 block">วันเกิด <span class="text-red-500">*</span></label>
-                <input type="date" id="birthDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-              </div>
-              <div>
-                <label class="text-sm font-bold text-gray-600 mb-1 block">เบอร์โทรศัพท์ (10 หลัก) <span class="text-red-500">*</span></label>
-                <input type="tel" id="phone" maxlength="10" placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white font-mono text-sm">
-              </div>
-              <div>
-                <label class="text-sm font-bold text-gray-600 mb-1 block">อีเมล <span class="text-red-500">*</span></label>
-                <input type="email" id="email" placeholder="example@email.com" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-              </div>
+// ==========================================
+// 2. ระบบแสดงผลและการส่งข้อมูลฝั่งนักศึกษา (ตามโครงสร้างเดิม)
+// ==========================================
+function renderStudentUI() {
+  document.getElementById('resName').innerText = currentStudent.name;
+  document.getElementById('resName2').innerText = currentStudent.name;
+  document.getElementById('resName3').innerText = currentStudent.name;
+  document.getElementById('resId').innerText = currentStudent.studentId;
+  document.getElementById('resCourse').innerText = currentStudent.course;
 
-              <div class="md:col-span-2 pt-3 border-t">
-                <p class="text-sm font-bold text-theme-green mb-3"><i class="fa-solid fa-location-dot mr-1"></i> ที่อยู่ปัจจุบัน</p>
-                <div class="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3 mb-3">
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">บ้านเลขที่ <span class="text-red-500">*</span></label>
-                    <input type="text" id="addrNo" placeholder="เช่น 123/4" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-                  </div>
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">หมู่ที่</label>
-                    <input type="text" id="addrMoo" placeholder="เช่น 5 หรือ -" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-                  </div>
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">ตรอก/ซอย</label>
-                    <input type="text" id="addrSoi" placeholder="ซอย (ถ้ามี)" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-                  </div>
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">ถนน</label>
-                    <input type="text" id="addrRoad" placeholder="ถนน (ถ้ามี)" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-                  </div>
-                </div>
+  setBadge('pdpaBadge', 'PDPA', currentStudent.pdpaStatus);
+  setBadge('contractBadge', 'Contract', currentStudent.contractStatus);
+  setBadge('transBadge', 'Transcript', currentStudent.transcriptStatus);
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">จังหวัด <span class="text-red-500">*</span></label>
-                    <select id="provinceSelect" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-                      <option value="">-- กำลังโหลดข้อมูลจังหวัด --</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">เขต/อำเภอ <span class="text-red-500">*</span></label>
-                    <select id="amphoeSelect" disabled class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm">
-                      <option value="">-- เลือกเขต/อำเภอ --</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">ตำบล/แขวง <span class="text-red-500">*</span></label>
-                    <select id="tambonSelect" disabled class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm">
-                      <option value="">-- เลือกตำบล/แขวง --</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-xs font-bold text-gray-600 mb-1 block">รหัสไปรษณีย์</label>
-                    <input type="text" id="zipcodeInput" readonly placeholder="อัตโนมัติ" class="w-full p-2.5 border rounded-xl bg-gray-200 text-gray-700 font-mono text-sm outline-none">
-                  </div>
-                </div>
-              </div>
+  // จัดการแสดงผลฟอร์ม PDPA
+  if (currentStudent.pdpaPdfUrl && currentStudent.pdpaStatus) {
+    document.getElementById('pdpaForm').classList.add('hidden');
+    document.getElementById('pdpaViewArea').classList.remove('hidden');
+    document.getElementById('viewPdpaBtn').href = currentStudent.pdpaPdfUrl;
+    document.getElementById('viewPdpaBtn').innerText = `ดูเอกสาร PDPA (${currentStudent.pdpaStatus})`;
+  } else {
+    document.getElementById('pdpaForm').classList.remove('hidden');
+    document.getElementById('pdpaViewArea').classList.add('hidden');
+  }
 
-              <div class="md:col-span-2 pt-3 border-t grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-bold text-gray-600 mb-1 block">ชื่อ-นามสกุล ผู้ปกครอง <span class="text-red-500">*</span></label>
-                  <input type="text" id="parentName" placeholder="ระบุคำนำหน้า ชื่อ-นามสกุล" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
-                </div>
-                <div>
-                  <label class="text-sm font-bold text-gray-600 mb-1 block">เบอร์โทรศัพท์ผู้ปกครอง (10 หลัก) <span class="text-red-500">*</span></label>
-                  <input type="tel" id="parentPhone" maxlength="10" placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white font-mono text-sm">
-                </div>
-              </div>
-            </div>
+  // จัดการแสดงผลฟอร์ม Contract
+  if (currentStudent.contractPdfUrl && currentStudent.contractStatus) {
+    document.getElementById('contractForm').classList.add('hidden');
+    document.getElementById('contractViewArea').classList.remove('hidden');
+    document.getElementById('viewContractBtn').href = currentStudent.contractPdfUrl;
+    document.getElementById('viewContractBtn').innerText = `ดูเอกสารสัญญา (${currentStudent.contractStatus})`;
+  } else {
+    document.getElementById('contractForm').classList.remove('hidden');
+    document.getElementById('contractViewArea').classList.add('hidden');
+  }
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 py-6 bg-gray-50 rounded-3xl">
-              <div class="flex flex-col items-center">
-                <p class="font-bold text-gray-600 text-sm mb-2">ลายมือชื่อนักศึกษา</p>
-                <div id="studentSigPreview" class="preview-box" onclick="openModal('studentSig')"><span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span></div>
-                <p class="font-bold text-theme-green mt-2 text-sm">( <span id="resName3">-</span> )</p>
-              </div>
-              <div class="flex flex-col items-center">
-                <p class="font-bold text-gray-600 text-sm mb-2">ลายมือชื่อผู้ปกครอง</p>
-                <div id="parentSigPreview" class="preview-box" onclick="openModal('parentSig')"><span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span></div>
-                <p class="font-bold text-theme-green mt-2 text-sm">( <span id="parentNamePreview">ผู้ปกครอง</span> )</p>
-              </div>
-            </div>
+  // จัดการแสดงผล Transcript
+  if (currentStudent.transcriptFileUrl && currentStudent.transcriptStatus) {
+    document.getElementById('uploadZone').classList.add('hidden');
+    document.getElementById('transViewArea').classList.remove('hidden');
+    document.getElementById('viewTransBtn').href = currentStudent.transcriptFileUrl;
+    document.getElementById('viewTransBtn').innerText = `ดู Transcript (${currentStudent.transcriptStatus})`;
+  } else {
+    document.getElementById('uploadZone').classList.remove('hidden');
+    document.getElementById('transViewArea').classList.add('hidden');
+  }
 
-            <button onclick="submitContract()" class="w-full bg-theme-gold text-white py-4 rounded-2xl font-bold text-lg shadow-xl transition active:scale-95">บันทึกและสร้าง PDF สัญญา</button>
-          </div>
-          <div id="contractViewArea" class="hidden"><a id="viewContractBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-theme-green text-white rounded-2xl font-bold shadow-md hover:opacity-90 transition">ดูเอกสารสัญญาที่บันทึกแล้ว</a></div>
-        </div>
+  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อ "ผ่าน" ทั้ง 3 รายการ)
+  const isAllPassed = (currentStudent.pdpaStatus === 'ผ่าน' && currentStudent.contractStatus === 'ผ่าน' && currentStudent.transcriptStatus === 'ผ่าน');
+  const eduBtn = document.getElementById('eduSystemBtn');
+  if (isAllPassed) {
+    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90 cursor-pointer";
+  } else {
+    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray cursor-not-allowed";
+  }
+}
 
-        <!-- 3. ส่วน Transcript -->
-        <div id="transSection" class="space-y-6 tab-content hidden">
-          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">3. อัปโหลดเอกสาร (Transcript)</h2>
-          <div id="uploadZone" class="p-6 md:p-10 border-4 border-dashed rounded-3xl bg-gray-50 text-center">
-            <input type="file" id="fileIn" accept=".pdf" class="hidden" onchange="document.getElementById('fileName').innerText='ไฟล์ที่เลือก: ' + this.files[0].name">
-            <div class="cursor-pointer" onclick="document.getElementById('fileIn').click()">
-              <i class="fa-solid fa-cloud-arrow-up text-4xl md:text-5xl text-theme-green"></i>
-              <p class="text-theme-green font-bold mt-2 text-sm md:text-base">คลิกเพื่อเลือกไฟล์ PDF</p>
-              <p id="fileName" class="text-xs text-gray-500 italic mt-1">ขนาดไม่เกิน 5MB</p>
-            </div>
-            <button onclick="uploadFile()" class="mt-4 bg-theme-gold text-white px-8 md:px-12 py-3 rounded-2xl font-bold shadow-lg text-sm md:text-base">อัปโหลดไฟล์</button>
-          </div>
-          <div id="transViewArea" class="hidden"><a id="viewTransBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-theme-green text-white rounded-2xl font-bold shadow-md hover:opacity-90 transition">ดู Transcript ที่อัปโหลดแล้ว</a></div>
-        </div>
+function setBadge(id, title, status) {
+  const el = document.getElementById(id);
+  const displayStatus = status ? status : 'รอดำเนินการ';
+  el.innerText = `${title}: ${displayStatus}`;
+  if (status === 'ผ่าน') {
+    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
+  } else if (status === 'รอตรวจสอบ') {
+    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
+  } else {
+    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-gray";
+  }
+}
 
-      </div>
+function handleEduSystemClick() {
+  if (!currentStudent) return;
+  const isAllPassed = (currentStudent.pdpaStatus === 'ผ่าน' && currentStudent.contractStatus === 'ผ่าน' && currentStudent.transcriptStatus === 'ผ่าน');
+  if (!isAllPassed) {
+    Swal.fire({ icon: 'warning', title: 'ยังไม่สามารถเข้าสู่ระบบได้', text: 'เอกสารทั้ง 3 รายการต้องได้รับการตรวจสอบและมีสถานะ "ผ่าน" ครบทั้งหมดก่อน' });
+    return;
+  }
+  window.open('https://reg.catc.or.th', '_blank');
+}
 
-      <!-- ส่วนหน้าจอ Admin Dashboard -->
-      <div id="adminArea" class="hidden p-4 md:p-10 space-y-6">
-        <div class="bg-blue-50 p-6 rounded-3xl border border-blue-100 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <h2 class="text-xl md:text-2xl font-bold text-blue-900"><i class="fa-solid fa-user-shield mr-2"></i> ระบบจัดการผู้ดูแลระบบ (Admin Dashboard)</h2>
-            <p class="text-sm text-blue-700 mt-1">ตรวจสอบและอนุมัติเอกสารนักศึกษา สถาบันการบินพลเรือน</p>
-          </div>
-          <button onclick="logoutAdmin()" class="px-5 py-2 bg-red-600 text-white rounded-xl font-bold text-sm shadow hover:bg-red-700 transition">ออกจากระบบ Admin</button>
-        </div>
+// บันทึก PDPA (ส่งเข้า action: 'savePdpa' เดิม)
+async function submitPdpa() {
+  const writtenAt = document.getElementById('writtenAt').value.trim();
+  const date = document.getElementById('dateInput').value;
+  if (!writtenAt || !date) {
+    Swal.fire({ icon: 'warning', title: 'กรุณากรอกสถานที่เขียนและวันที่' });
+    return;
+  }
+  if (!savedSignatures.user) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาลงลายมือชื่อนักศึกษาก่อนบันทึก' });
+    return;
+  }
 
-        <!-- สรุปจำนวนรอตรวจของทั้ง 3 เอกสาร -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl text-center shadow-sm">
-            <p class="text-xs font-bold text-yellow-700 uppercase">PDPA รอตรวจ</p>
-            <p id="countPdpa" class="text-3xl font-bold text-yellow-800 mt-2">0</p>
-          </div>
-          <div class="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl text-center shadow-sm">
-            <p class="text-xs font-bold text-yellow-700 uppercase">สัญญามอบตัว รอตรวจ</p>
-            <p id="countContract" class="text-3xl font-bold text-yellow-800 mt-2">0</p>
-          </div>
-          <div class="bg-yellow-50 border border-yellow-200 p-5 rounded-2xl text-center shadow-sm">
-            <p class="text-xs font-bold text-yellow-700 uppercase">Transcript รอตรวจ</p>
-            <p id="countTrans" class="text-3xl font-bold text-yellow-800 mt-2">0</p>
-          </div>
-        </div>
+  const formData = {
+    row: currentStudent.row,
+    studentId: currentStudent.studentId,
+    name: currentStudent.name,
+    idCard: currentStudent.idCard,
+    writtenAt: writtenAt,
+    date: date,
+    q1: document.querySelector('input[name="q1"]:checked').value,
+    q2: document.querySelector('input[name="q2"]:checked').value,
+    q3: document.querySelector('input[name="q3"]:checked').value,
+    q4: document.querySelector('input[name="q4"]:checked').value,
+    q5: document.querySelector('input[name="q5"]:checked').value,
+    userSig: savedSignatures.user
+  };
 
-        <!-- 3 Tab ตัวเลือกสำหรับ Admin ตรวจเอกสาร -->
-        <div class="flex border-b border-gray-200 text-xs md:text-base font-bold">
-          <button onclick="switchAdminTab('pdpa')" id="adminTabPdpa" class="flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50">1. ตรวจ PDPA</button>
-          <button onclick="switchAdminTab('contract')" id="adminTabContract" class="flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">2. ตรวจสัญญาการศึกษา</button>
-          <button onclick="switchAdminTab('trans')" id="adminTabTrans" class="flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">3. ตรวจ Transcript</button>
-        </div>
+  Swal.fire({ title: 'กำลังสร้างเอกสาร PDF PDPA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        <!-- ตารางแสดงรายการรอตรวจสอบ -->
-        <div class="overflow-x-auto bg-white rounded-2xl border border-gray-200 shadow-sm">
-          <table class="w-full text-left border-collapse">
-            <thead>
-              <tr class="bg-gray-100 text-gray-700 text-xs md:text-sm uppercase">
-                <th class="p-4">รหัสนักศึกษา</th>
-                <th class="p-4">ชื่อ-นามสกุล</th>
-                <th class="p-4">หลักสูตร</th>
-                <th class="p-4 text-center">ดูเอกสาร</th>
-                <th class="p-4 text-center">พิจารณา</th>
-              </tr>
-            </thead>
-            <tbody id="adminTableBody" class="divide-y divide-gray-100 text-xs md:text-sm">
-              <!-- ข้อมูลจะถูกเติมด้วย JavaScript -->
-            </tbody>
-          </table>
-        </div>
-      </div>
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'savePdpa', formData: formData })
+    });
+    const res = await response.json();
+    if (res.status === 'success') {
+      currentStudent.pdpaPdfUrl = res.data;
+      currentStudent.pdpaStatus = 'รอตรวจสอบ';
+      renderStudentUI();
+      Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF PDPA สำเร็จ' });
+    } else {
+      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
 
-      <!-- ส่วน Footer -->
-      <div class="bg-gray-50 py-4 px-6 text-center border-t border-gray-200 text-xs md:text-sm text-gray-500">
-        พัฒนาโดย กองวิชาวิศวกรรมการบิน สถาบันการบินพลเรือน
-      </div>
+// บันทึก Contract (ส่งเข้า action: 'saveContract' เดิม)
+async function submitContract() {
+  const contractDate = document.getElementById('contractDate').value;
+  const birthDate = document.getElementById('birthDate').value;
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const addrNo = document.getElementById('addrNo').value.trim();
+  const addrMoo = document.getElementById('addrMoo').value.trim();
+  const addrSoi = document.getElementById('addrSoi').value.trim();
+  const addrRoad = document.getElementById('addrRoad').value.trim();
+  const province = document.getElementById('provinceSelect').value;
+  const amphoe = document.getElementById('amphoeSelect').value;
+  const tambon = document.getElementById('tambonSelect').value;
+  const zipcode = document.getElementById('zipcodeInput').value;
+  const parentName = document.getElementById('parentName').value.trim();
+  const parentPhone = document.getElementById('parentPhone').value.trim();
 
-    </div>
-  </div>
+  if (!contractDate || !birthDate || phone.length !== 10 || !email || !addrNo || !province || !amphoe || !tambon || !parentName || parentPhone.length !== 10) {
+    Swal.fire({ icon: 'warning', title: 'กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วนและถูกต้อง' });
+    return;
+  }
+  if (!savedSignatures.studentSig || !savedSignatures.parentSig) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาลงลายมือชื่อทั้งนักศึกษาและผู้ปกครอง' });
+    return;
+  }
 
-  <!-- Modal เซ็นลายมือชื่อ -->
-  <div id="sigModal" class="modal">
-    <div class="modal-content animate-scale-up">
-      <h3 class="font-bold text-lg md:text-xl mb-4 text-theme-green">ลงลายมือชื่อ</h3>
-      <canvas id="modalCanvas" class="sig-canvas-modal"></canvas>
-      <div class="flex gap-3 mt-4">
-        <button onclick="clearModalSig()" class="flex-1 py-3 bg-gray-200 rounded-xl font-bold text-sm">ล้างใหม่</button>
-        <button onclick="saveModalSig()" class="flex-1 py-3 bg-theme-green text-white rounded-xl font-bold text-sm">ตกลง</button>
-      </div>
-      <button onclick="closeModal()" class="mt-3 text-xs md:text-sm text-gray-400">ปิดหน้าต่าง</button>
-    </div>
-  </div>
+  const fullAddress = `บ้านเลขที่ ${addrNo} ${addrMoo ? 'หมู่ ' + addrMoo : ''} ${addrSoi ? 'ซอย' + addrSoi : ''} ${addrRoad ? 'ถนน' + addrRoad : ''} ตำบล/แขวง${tambon} อำเภอ/เขต${amphoe} จังหวัด${province} ${zipcode}`.replace(/\s+/g, ' ').trim();
 
-  <!-- Modal แสดงเอกสารสำหรับ Admin ตรวจสอบ -->
-  <div id="docViewerModal" class="modal">
-    <div class="modal-content max-w-2xl h-[85vh] flex flex-col">
-      <div class="flex justify-between items-center pb-3 border-b">
-        <h3 id="viewerTitle" class="font-bold text-lg text-theme-green">ตรวจสอบเอกสาร</h3>
-        <button onclick="closeDocViewer()" class="text-gray-500 hover:text-black font-bold text-lg px-2">&times;</button>
-      </div>
-      <div id="viewerBody" class="flex-1 my-4 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden">
-        <!-- แสดงเนื้อหา PDF หรือพรีวิว -->
-      </div>
-      <div class="flex gap-3 pt-3 border-t">
-        <button onclick="adminReviewAction('fail')" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition">ไม่ผ่าน (ให้ทำใหม่)</button>
-        <button onclick="adminReviewAction('pass')" class="flex-1 py-3 bg-[#128F8B] text-white rounded-xl font-bold text-sm hover:opacity-90 transition">เรียบร้อย (ผ่าน)</button>
-      </div>
-    </div>
-  </div>
+  const formData = {
+    row: currentStudent.row,
+    course: currentStudent.course,
+    contractDate: contractDate,
+    name: currentStudent.name,
+    studentId: currentStudent.studentId,
+    idCard: currentStudent.idCard,
+    birthDate: birthDate,
+    address: fullAddress,
+    phone: phone,
+    email: email,
+    parentName: parentName,
+    parentPhone: parentPhone,
+    studentSig: savedSignatures.studentSig,
+    parentSig: savedSignatures.parentSig
+  };
 
-  <script src="app.js"></script>
-</body>
-</html>
+  Swal.fire({ title: 'กำลังสร้างเอกสาร PDF สัญญาการศึกษา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'saveContract', formData: formData })
+    });
+    const res = await response.json();
+    if (res.status === 'success') {
+      currentStudent.contractPdfUrl = res.data;
+      currentStudent.contractStatus = 'รอตรวจสอบ';
+      renderStudentUI();
+      Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF สัญญาสำเร็จ' });
+    } else {
+      Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+  }
+}
+
+// อัปโหลด Transcript (ส่งเข้า action: 'uploadTranscript' เดิม)
+async function uploadFile() {
+  const fileInput = document.getElementById('fileIn');
+  if (fileInput.files.length === 0) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาเลือกไฟล์ PDF ก่อนอัปโหลด' });
+    return;
+  }
+  const file = fileInput.files[0];
+  if (file.size > 5 * 1024 * 1024) {
+    Swal.fire({ icon: 'warning', title: 'ขนาดไฟล์เกิน 5MB' });
+    return;
+  }
+
+  Swal.fire({ title: 'กำลังอัปโหลดไฟล์ Transcript...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  const reader = new FileReader();
+  reader.onload = async function() {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'uploadTranscript',
+          base64: reader.result,
+          fileName: `Transcript_${currentStudent.studentId}_${currentStudent.name}.pdf`,
+          row: currentStudent.row
+        })
+      });
+      const res = await response.json();
+      if (res.status === 'success') {
+        currentStudent.transcriptFileUrl = res.data;
+        currentStudent.transcriptStatus = 'รอตรวจสอบ';
+        renderStudentUI();
+        Swal.fire({ icon: 'success', title: 'อัปโหลด Transcript สำเร็จ' });
+      } else {
+        Swal.fire({ icon: 'error', title: 'อัปโหลดไม่สำเร็จ', text: res.message });
+      }
+    } catch (err) {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+// ==========================================
+// 3. ระบบผู้ดูแลระบบ (ADMIN DASHBOARD)
+// ==========================================
+function logoutAdmin() {
+  document.getElementById('adminArea').classList.add('hidden');
+  document.getElementById('idSearch').value = '';
+  Swal.fire({ icon: 'info', title: 'ออกจากระบบ Admin แล้ว', timer: 1200, showConfirmButton: false });
+}
+
+function renderAdminDashboard() {
+  // นับเฉพาะช่องที่มีลิงก์หลักฐานจริง (ไม่เป็นค่าว่าง) และมีสถานะ "รอตรวจสอบ"
+  const countPdpa = adminStudentsList.filter(s => s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ").length;
+  const countContract = adminStudentsList.filter(s => s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ").length;
+  const countTrans = adminStudentsList.filter(s => s.transcriptFileUrl !== "" && s.transcriptStatus === "รอตรวจสอบ").length;
+
+  document.getElementById('countPdpa').innerText = countPdpa;
+  document.getElementById('countContract').innerText = countContract;
+  document.getElementById('countTrans').innerText = countTrans;
+
+  renderAdminTable();
+}
+
+function switchAdminTab(tab) {
+  currentAdminTab = tab;
+  document.getElementById('adminTabPdpa').className = tab === 'pdpa' ? "flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50" : "flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  document.getElementById('adminTabContract').className = tab === 'contract' ? "flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50" : "flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  document.getElementById('adminTabTrans').className = tab === 'trans' ? "flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50" : "flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  renderAdminTable();
+}
+
+function renderAdminTable() {
+  const tbody = document.getElementById('adminTableBody');
+  tbody.innerHTML = '';
+
+  // กรองเฉพาะแถวที่มีลิงก์ไฟล์จริง (ไม่ใช่ช่องว่าง) และสถานะเป็น "รอตรวจสอบ"
+  const filtered = adminStudentsList.filter(s => {
+    if (currentAdminTab === 'pdpa') return s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ";
+    if (currentAdminTab === 'contract') return s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ";
+    if (currentAdminTab === 'trans') return s.transcriptFileUrl !== "" && s.transcriptStatus === "รอตรวจสอบ";
+    return false;
+  });
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 italic">ไม่มีเอกสารที่อยู่ในสถานะรอตรวจสอบ</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(s => {
+    const fileUrl = currentAdminTab === 'pdpa' ? s.pdpaPdfUrl : (currentAdminTab === 'contract' ? s.contractPdfUrl : s.transcriptFileUrl);
+    tbody.innerHTML += `
+      <tr class="hover:bg-gray-50 border-b">
+        <td class="p-4 font-mono font-bold">${s.studentId}</td>
+        <td class="p-4 font-medium">${s.name}</td>
+        <td class="p-4 text-xs text-gray-600">${s.course}</td>
+        <td class="p-4 text-center">
+          <a href="${fileUrl}" target="_blank" class="inline-block px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold hover:bg-blue-200 transition"><i class="fa-solid fa-eye mr-1"></i> ดูเอกสาร</a>
+        </td>
+        <td class="p-4 text-center space-x-2">
+          <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ผ่าน')" class="px-3 py-1.5 bg-[#128F8B] text-white rounded-lg text-xs font-bold hover:opacity-90 transition"><i class="fa-solid fa-check mr-1"></i> เรียบร้อย</button>
+          <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ไม่ผ่าน')" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition"><i class="fa-solid fa-xmark mr-1"></i> ไม่ผ่าน</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+async function adminSetStatus(row, docType, decision) {
+  Swal.fire({ title: 'กำลังอัปเดตสถานะใน Google Sheet...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'updateAdminStatus',
+        row: row,
+        docType: docType,
+        decision: decision
+      })
+    });
+    const res = await response.json();
+
+    if (res.status === 'success') {
+      const target = adminStudentsList.find(s => s.row === row);
+      if (target) {
+        if (docType === 'pdpa') {
+          target.pdpaStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          if (decision === 'ไม่ผ่าน') target.pdpaPdfUrl = '';
+        } else if (docType === 'contract') {
+          target.contractStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          if (decision === 'ไม่ผ่าน') target.contractPdfUrl = '';
+        } else if (docType === 'trans') {
+          target.transcriptStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          if (decision === 'ไม่ผ่าน') target.transcriptFileUrl = '';
+        }
+      }
+
+      Swal.fire({
+        icon: decision === 'ผ่าน' ? 'success' : 'warning',
+        title: decision === 'ผ่าน' ? 'บันทึกสถานะ "เรียบร้อย (ผ่าน)" แล้ว' : 'บันทึก "ไม่ผ่าน" และล้างข้อมูลเรียบร้อย',
+        text: decision === 'ไม่ผ่าน' ? 'ล้างช่องสถานะและลิงก์ใน Google Sheet แล้ว เพื่อให้นักศึกษากรอกใหม่' : '',
+        timer: 1800,
+        showConfirmButton: false
+      });
+
+      renderAdminDashboard();
+    } else {
+      Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: res.message });
+    }
+  } catch (err) {
+    Swal.fire({ icon: 'error', title: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ', text: err.message });
+  }
+}
+
+// ==========================================
+// 4. ระบบ UI, Tab, ลายมือชื่อ และข้อมูลที่อยู่ประเทศไทย
+// ==========================================
+function switchTab(tab) {
+  ['pdpaSection', 'contractSection', 'transSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
+  ['tabPdpaBtn', 'tabContractBtn', 'tabTransBtn'].forEach(id => {
+    document.getElementById(id).className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  });
+
+  if (tab === 'pdpa') {
+    document.getElementById('pdpaSection').classList.remove('hidden');
+    document.getElementById('tabPdpaBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
+  } else if (tab === 'contract') {
+    document.getElementById('contractSection').classList.remove('hidden');
+    document.getElementById('tabContractBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
+  } else if (tab === 'trans') {
+    document.getElementById('transSection').classList.remove('hidden');
+    document.getElementById('tabTransBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
+  }
+}
+
+let modalSignaturePad = null;
+let currentSigField = null;
+let savedSignatures = { user: null, studentSig: null, parentSig: null };
+
+function openModal(field) {
+  currentSigField = field;
+  document.getElementById('sigModal').style.display = 'block';
+  const canvas = document.getElementById('modalCanvas');
+  const ratio = Math.max(window.devicePixelRatio || 1, 1);
+  canvas.width = canvas.offsetWidth * ratio;
+  canvas.height = canvas.offsetHeight * ratio;
+  canvas.getContext("2d").scale(ratio, ratio);
+  modalSignaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)' });
+}
+
+function closeModal() {
+  document.getElementById('sigModal').style.display = 'none';
+}
+
+function clearModalSig() {
+  if (modalSignaturePad) modalSignaturePad.clear();
+}
+
+function saveModalSig() {
+  if (!modalSignaturePad || modalSignaturePad.isEmpty()) {
+    Swal.fire({ icon: 'warning', title: 'กรุณาเซ็นชื่อก่อนกดตกลง' });
+    return;
+  }
+  const dataUrl = modalSignaturePad.toDataURL('image/png');
+  savedSignatures[currentSigField] = dataUrl;
+  const previewId = currentSigField === 'user' ? 'userPreview' : (currentSigField === 'studentSig' ? 'studentSigPreview' : 'parentSigPreview');
+  document.getElementById(previewId).innerHTML = `<img src="${dataUrl}" alt="signature">`;
+  closeModal();
+}
+
+// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล ของประเทศไทย
+async function loadThaiAddress() {
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json');
+    thaiAddressData = await res.json();
+    const provSelect = document.getElementById('provinceSelect');
+    provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
+    thaiAddressData.forEach(p => {
+      provSelect.innerHTML += `<option value="${p.name_th}">${p.name_th}</option>`;
+    });
+
+    provSelect.addEventListener('change', function() {
+      const amphoeSelect = document.getElementById('amphoeSelect');
+      const tambonSelect = document.getElementById('tambonSelect');
+      document.getElementById('zipcodeInput').value = '';
+      tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+      tambonSelect.disabled = true;
+
+      const selectedProv = thaiAddressData.find(p => p.name_th === this.value);
+      if (selectedProv) {
+        amphoeSelect.disabled = false;
+        amphoeSelect.classList.remove('bg-gray-100');
+        amphoeSelect.classList.add('bg-white');
+        amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
+        selectedProv.amphure.forEach(a => {
+          amphoeSelect.innerHTML += `<option value="${a.name_th}">${a.name_th}</option>`;
+        });
+      } else {
+        amphoeSelect.disabled = true;
+      }
+    });
+
+    document.getElementById('amphoeSelect').addEventListener('change', function() {
+      const tambonSelect = document.getElementById('tambonSelect');
+      document.getElementById('zipcodeInput').value = '';
+      const selectedProv = thaiAddressData.find(p => p.name_th === provSelect.value);
+      const selectedAmp = selectedProv ? selectedProv.amphure.find(a => a.name_th === this.value) : null;
+      if (selectedAmp) {
+        tambonSelect.disabled = false;
+        tambonSelect.classList.remove('bg-gray-100');
+        tambonSelect.classList.add('bg-white');
+        tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+        selectedAmp.tambon.forEach(t => {
+          tambonSelect.innerHTML += `<option value="${t.name_th}" data-zip="${t.zip_code}">${t.name_th}</option>`;
+        });
+      } else {
+        tambonSelect.disabled = true;
+      }
+    });
+
+    document.getElementById('tambonSelect').addEventListener('change', function() {
+      const selectedOpt = this.options[this.selectedIndex];
+      document.getElementById('zipcodeInput').value = selectedOpt.getAttribute('data-zip') || '';
+    });
+  } catch (e) {
+    console.error("โหลดข้อมูลที่อยู่ไม่สำเร็จ", e);
+  }
+}
+
+window.onload = function() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('dateInput').value = today;
+  document.getElementById('contractDate').value = today;
+  
+  document.getElementById('parentName').addEventListener('input', function() {
+    document.getElementById('parentNamePreview').innerText = this.value.trim() || 'ผู้ปกครอง';
+  });
+
+  loadThaiAddress();
+};
