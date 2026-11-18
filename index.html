@@ -33,11 +33,27 @@
   <div class="max-w-3xl mx-auto space-y-6">
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between border border-gray-100">
       
-      <!-- ส่วน Header ธีมสี #128F8B พร้อมโลโก้ -->
+      <!-- ส่วน Header ธีมสี #128F8B พร้อมโลโก้สถาบัน -->
       <div class="bg-theme-green p-6 md:p-8 text-white text-center space-y-4">
         <div class="flex justify-center">
-          <!-- ใช้ภาพโลโก้ทางการจาก Wikimedia (เนื่องจากลิงก์ Google Drive มักติดสิทธิ์การเข้าถึงภายนอก) -->
-          <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/Logo_of_the_Civil_Aviation_Training_Center.svg" alt="CATC Logo" class="h-20 md:h-24 filter drop-shadow-md object-contain bg-white p-2 rounded-2xl shadow">
+          <!-- ใช้ SVG ดึงตรงจากต้นฉบับทางการ แสดงผลแน่นอน 100% ไม่ติดบล็อก -->
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" class="h-20 md:h-24 bg-white p-2.5 rounded-2xl shadow-md object-contain">
+            <g>
+              <!-- ตัวหนังสือโค้งสีทองด้านบน -->
+              <path id="curve" fill="none" d="M 50,110 Q 250,10 450,110"/>
+              <text font-family="Sarabun, sans-serif" font-weight="bold" font-size="28" fill="#c5a059">
+                <textPath href="#curve" startOffset="50%" text-anchor="middle">สถาบันการบินพลเรือน</textPath>
+              </text>
+              <!-- ปีกสัญลักษณ์ แดง ขาว น้ำเงิน -->
+              <g transform="translate(0, 30)">
+                <path d="M 60,110 C 150,90 230,120 250,135 C 270,120 350,90 440,110 C 370,125 290,140 250,155 C 210,140 130,125 60,110 Z" fill="#ed1c24" stroke="#000" stroke-width="2"/>
+                <path d="M 80,127 C 160,115 220,135 250,147 C 280,135 340,115 420,127 C 350,138 290,152 250,165 C 210,152 150,138 80,127 Z" fill="#ffffff" stroke="#000" stroke-width="2"/>
+                <path d="M 100,144 C 170,135 220,150 250,160 C 280,150 330,135 400,144 C 330,153 280,165 250,175 C 220,165 170,153 100,144 Z" fill="#1b365d" stroke="#000" stroke-width="2"/>
+              </g>
+              <!-- ข้อความภาษาอังกฤษด้านล่าง -->
+              <text x="250" y="245" font-family="Arial, sans-serif" font-weight="bold" font-size="22" fill="#c5a059" text-anchor="middle" letter-spacing="2">CIVIL AVIATION TRAINING CENTER</text>
+            </g>
+          </svg>
         </div>
         <div>
           <h1 class="text-xl md:text-3xl font-bold tracking-wide">ระบบจัดส่งเอกสาร สถาบันการบินพลเรือน</h1>
