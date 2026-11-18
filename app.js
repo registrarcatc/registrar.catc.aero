@@ -1,9 +1,91 @@
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
+const THAI_ADDRESS_DB_URL = "https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json";
 
 let current = null;
 let modalPad;
 let activeType = '';
 let savedSigs = { user: null, w1: null, w2: null, studentSig: null, parentSig: null };
+let thaiAddressData = [];
+
+// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล/รหัสไปรษณีย์ เมื่อเปิดหน้าเว็บ
+document.addEventListener("DOMContentLoaded", async () => {
+  await initThaiAddress();
+});
+
+async function initThaiAddress() {
+  const provSelect = document.getElementById('provinceSelect');
+  const amphoeSelect = document.getElementById('amphoeSelect');
+  const tambonSelect = document.getElementById('tambonSelect');
+  const zipInput = document.getElementById('zipcodeInput');
+
+  try {
+    const res = await fetch(THAI_ADDRESS_DB_URL);
+    thaiAddressData = await res.json();
+
+    // ดึงรายชื่อจังหวัดไม่ซ้ำและเรียงตามตัวอักษร
+    const provinces = [...new Set(thaiAddressData.map(item => item.province))].sort((a, b) => a.localeCompare(b, 'th'));
+    provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
+    provinces.forEach(p => {
+      provSelect.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+
+    // เมื่อเลือกจังหวัด -> กรองเขต/อำเภอ
+    provSelect.addEventListener('change', () => {
+      const selectedProv = provSelect.value;
+      amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
+      tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+      zipInput.value = '';
+      tambonSelect.disabled = true;
+      tambonSelect.classList.add('bg-gray-100');
+
+      if (!selectedProv) {
+        amphoeSelect.disabled = true;
+        amphoeSelect.classList.add('bg-gray-100');
+        return;
+      }
+
+      const amphoes = [...new Set(thaiAddressData.filter(item => item.province === selectedProv).map(item => item.amphoe))].sort((a, b) => a.localeCompare(b, 'th'));
+      amphoes.forEach(a => {
+        amphoeSelect.innerHTML += `<option value="${a}">${a}</option>`;
+      });
+      amphoeSelect.disabled = false;
+      amphoeSelect.classList.remove('bg-gray-100');
+    });
+
+    // เมื่อเลือกเขต/อำเภอ -> กรองตำบล/แขวง
+    amphoeSelect.addEventListener('change', () => {
+      const selectedProv = provSelect.value;
+      const selectedAmphoe = amphoeSelect.value;
+      tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+      zipInput.value = '';
+
+      if (!selectedAmphoe) {
+        tambonSelect.disabled = true;
+        tambonSelect.classList.add('bg-gray-100');
+        return;
+      }
+
+      const tambons = thaiAddressData.filter(item => item.province === selectedProv && item.amphoe === selectedAmphoe);
+      // เรียงชื่อตำบล
+      tambons.sort((a, b) => a.district.localeCompare(b.district, 'th'));
+      tambons.forEach(t => {
+        tambonSelect.innerHTML += `<option value="${t.district}" data-zip="${t.zipcode}">${t.district}</option>`;
+      });
+      tambonSelect.disabled = false;
+      tambonSelect.classList.remove('bg-gray-100');
+    });
+
+    // เมื่อเลือกตำบล/แขวง -> ใส่รหัสไปรษณีย์อัตโนมัติ
+    tambonSelect.addEventListener('change', () => {
+      const selectedOption = tambonSelect.options[tambonSelect.selectedIndex];
+      zipInput.value = selectedOption ? (selectedOption.getAttribute('data-zip') || '') : '';
+    });
+
+  } catch (err) {
+    console.error("โหลดฐานข้อมูลที่อยู่ไม่สำเร็จ:", err);
+    provSelect.innerHTML = '<option value="">โหลดข้อมูลไม่สำเร็จ กรุณารีเฟรช</option>';
+  }
+}
 
 async function callApi(action, payload = {}) {
   try {
@@ -47,7 +129,6 @@ function showResult(data) {
   const localToday = new Date(now.getTime() - (offset * 60 * 1000));
   const todayStr = localToday.toISOString().split('T')[0];
   
-  // Set default dates
   ['dateInput', 'contractDate'].forEach(id => {
     const el = document.getElementById(id);
     if(el) { el.value = todayStr; el.max = todayStr; }
@@ -59,7 +140,7 @@ function showResult(data) {
     return "status-yellow";
   };
 
-  // 1. PDPA Status & View
+  // 1. PDPA
   document.getElementById('pdpaBadge').innerText = "PDPA: " + (data.pdpaStatus || "ยังไม่ส่ง");
   document.getElementById('pdpaBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.pdpaStatus);
   if(data.pdpaPdfUrl) {
@@ -71,7 +152,7 @@ function showResult(data) {
     document.getElementById('pdpaViewArea').classList.add('hidden');
   }
 
-  // 2. Contract Status & View
+  // 2. Contract
   document.getElementById('contractBadge').innerText = "Contract: " + (data.contractStatus || "ยังไม่ส่ง");
   document.getElementById('contractBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.contractStatus);
   if(data.contractPdfUrl) {
@@ -83,7 +164,7 @@ function showResult(data) {
     document.getElementById('contractViewArea').classList.add('hidden');
   }
 
-  // 3. Transcript Status & View
+  // 3. Transcript
   document.getElementById('transBadge').innerText = "Transcript: " + (data.transcriptStatus || "ยังไม่ส่ง");
   document.getElementById('transBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.transcriptStatus);
   
@@ -122,25 +203,74 @@ async function submitPdpa() {
 }
 
 async function submitContract() {
+  const course = document.getElementById('course').value.trim();
   const contractDate = document.getElementById('contractDate').value;
   const birthDate = document.getElementById('birthDate').value;
-  const address = document.getElementById('address').value;
-  const phone = document.getElementById('phone').value;
-  const email = document.getElementById('email').value;
-  const parentName = document.getElementById('parentName').value;
-  const parentPhone = document.getElementById('parentPhone').value;
+  const phone = document.getElementById('phone').value.trim();
+  const email = document.getElementById('email').value.trim();
+  
+  const addrNo = document.getElementById('addrNo').value.trim();
+  const addrMoo = document.getElementById('addrMoo').value.trim();
+  const addrSoi = document.getElementById('addrSoi').value.trim();
+  const addrRoad = document.getElementById('addrRoad').value.trim();
+  const province = document.getElementById('provinceSelect').value;
+  const amphoe = document.getElementById('amphoeSelect').value;
+  const tambon = document.getElementById('tambonSelect').value;
+  const zipcode = document.getElementById('zipcodeInput').value.trim();
 
-  if (!contractDate || !birthDate || !address || !phone || !email || !parentName || !parentPhone) {
-    return Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลในฟอร์มสัญญาให้ครบถ้วน', 'warning');
+  const parentName = document.getElementById('parentName').value.trim();
+  const parentPhone = document.getElementById('parentPhone').value.trim();
+
+  // ตรวจสอบช่องว่างที่จำเป็น
+  if (!course) return Swal.fire('แจ้งเตือน', 'กรุณาระบุหลักสูตร', 'warning');
+  if (!contractDate || !birthDate) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ทำสัญญาและวันเกิดให้ครบถ้วน', 'warning');
+  
+  // บังคับ Format เบอร์โทร 10 หลัก
+  const phoneRegex = /^0[0-9]{9}$/;
+  if (!phoneRegex.test(phone)) {
+    return Swal.fire('รูปแบบไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์นักศึกษาเป็นตัวเลข 10 หลัก (ขึ้นต้นด้วย 0)', 'warning');
   }
+
+  // บังคับ Format อีเมล
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return Swal.fire('รูปแบบไม่ถูกต้อง', 'กรุณากรอกรูปแบบอีเมลให้ถูกต้อง (เช่น example@email.com)', 'warning');
+  }
+
+  // ตรวจสอบที่อยู่
+  if (!addrNo || !province || !amphoe || !tambon || !zipcode) {
+    return Swal.fire('แจ้งเตือน', 'กรุณากรอกบ้านเลขที่ และเลือกจังหวัด เขต/อำเภอ ตำบล/แขวง ให้ครบถ้วน', 'warning');
+  }
+
+  if (!parentName) return Swal.fire('แจ้งเตือน', 'กรุณากรอกชื่อ-นามสกุลผู้ปกครอง', 'warning');
+  if (!phoneRegex.test(parentPhone)) {
+    return Swal.fire('รูปแบบไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์ผู้ปกครองเป็นตัวเลข 10 หลัก (ขึ้นต้นด้วย 0)', 'warning');
+  }
+
   if (!savedSigs.studentSig) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อนักศึกษา', 'warning');
   if (!savedSigs.parentSig) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อผู้ปกครอง', 'warning');
+
+  // ประกอบข้อความที่อยู่รวมให้สวยงาม (ปรับคำนำหน้า แขวง/เขต สำหรับกรุงเทพฯ อัตโนมัติ)
+  const isBkk = province === 'กรุงเทพมหานคร';
+  const subdistrictPrefix = isBkk ? 'แขวง' : 'ตำบล';
+  const districtPrefix = isBkk ? 'เขต' : 'อำเภอ';
+
+  let fullAddressParts = [`บ้านเลขที่ ${addrNo}`];
+  if (addrMoo && addrMoo !== '-') fullAddressParts.push(`หมู่ ${addrMoo}`);
+  if (addrSoi && addrSoi !== '-') fullAddressParts.push(`ซอย${addrSoi}`);
+  if (addrRoad && addrRoad !== '-') fullAddressParts.push(`ถนน${addrRoad}`);
+  fullAddressParts.push(`${subdistrictPrefix}${tambon}`);
+  fullAddressParts.push(`${districtPrefix}${amphoe}`);
+  fullAddressParts.push(isBkk ? province : `จังหวัด${province}`);
+  fullAddressParts.push(zipcode);
+
+  const address = fullAddressParts.join(' ');
 
   Swal.fire({ title: 'กำลังสร้าง PDF สัญญา...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
   const formData = {
     row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
-    contractDate, birthDate, address, phone, email, parentName, parentPhone,
+    course, contractDate, birthDate, address, phone, email, parentName, parentPhone,
     studentSig: savedSigs.studentSig, parentSig: savedSigs.parentSig
   };
 
@@ -184,14 +314,9 @@ function saveModalSig() {
   if(activeType === 'user') previewId = 'userPreview';
   
   document.getElementById(previewId).innerHTML = `<img src="${dataUrl}" class="h-full">`;
-  
-  if (activeType === 'parentName') {
-    // ถ้ามีการผูกชื่อผู้ปกครอง
-  }
   closeModal();
 }
 
-// อัปเดตชื่อผู้ปกครองบน UI แบบ Realtime ใต้ช่องเซ็น
 document.getElementById('parentName')?.addEventListener('input', (e) => {
   const val = e.target.value.trim();
   document.getElementById('parentNamePreview').innerText = val || "ผู้ปกครอง";
