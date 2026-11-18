@@ -124,6 +124,32 @@ async function search() {
   const id = document.getElementById('idSearch').value;
   if (id.length !== 13) return Swal.fire('แจ้งเตือน', 'กรุณากรอกเลขบัตร 13 หลัก', 'warning');
   
+  // --- [เพิ่มเข้ามา] ล้างข้อมูลและรูปลายเซ็นของคนก่อนหน้าทันทีเพื่อความปลอดภัย ---
+  current = null;
+  savedSigs = { user: null, studentSig: null, parentSig: null };
+  
+  // ล้างภาพตัวอย่างลายเซ็นบนหน้าจอ
+  const userPrev = document.getElementById('userPreview');
+  if (userPrev) userPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
+  
+  const studentSigPrev = document.getElementById('studentSigPreview');
+  if (studentSigPrev) studentSigPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
+  
+  const parentSigPrev = document.getElementById('parentSigPreview');
+  if (parentSigPrev) parentSigPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
+  
+  // รีเซ็ตชื่อผู้ปกครองและพยาน (ถ้ามี)
+  const parentNameInput = document.getElementById('parentName');
+  if (parentNameInput) parentNameInput.value = '';
+  const parentNamePrev = document.getElementById('parentNamePreview');
+  if (parentNamePrev) parentNamePrev.innerText = 'ผู้ปกครอง';
+  
+  const w1NameInput = document.getElementById('w1Name');
+  if (w1NameInput) w1NameInput.value = '';
+  const w2NameInput = document.getElementById('w2Name');
+  if (w2NameInput) w2NameInput.value = '';
+  // -------------------------------------------------------------
+
   Swal.fire({ title: 'กำลังค้นหา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   
   const data = await callApi('searchStudent', { idCard: id });
