@@ -4,7 +4,7 @@ const THAI_ADDRESS_DB_URL = "https://raw.githubusercontent.com/earthchie/jquery.
 let current = null;
 let modalPad;
 let activeType = '';
-let savedSigs = { user: null, w1: null, w2: null, studentSig: null, parentSig: null };
+let savedSigs = { user: null, studentSig: null, parentSig: null };
 let thaiAddressData = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -204,7 +204,6 @@ async function submitPdpa() {
   const dateVal = document.getElementById('dateInput').value;
   if (!dateVal) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่', 'warning');
   if (!savedSigs.user) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อนักศึกษา', 'warning');
-  if (!document.getElementById('w1Name').value) return Swal.fire('แจ้งเตือน', 'กรุณากรอกชื่อพยาน 1', 'warning');
 
   Swal.fire({ title: 'กำลังสร้าง PDF PDPA...', text: 'กรุณารอสักครู่', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
@@ -216,9 +215,7 @@ async function submitPdpa() {
     q3: document.querySelector('input[name="q3"]:checked').value,
     q4: document.querySelector('input[name="q4"]:checked').value,
     q5: document.querySelector('input[name="q5"]:checked').value,
-    w1Name: document.getElementById('w1Name').value,
-    w2Name: document.getElementById('w2Name').value,
-    userSig: savedSigs.user, w1Sig: savedSigs.w1, w2Sig: savedSigs.w2
+    userSig: savedSigs.user
   };
 
   await callApi('savePdpa', { formData });
