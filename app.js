@@ -2,9 +2,9 @@
 const ADMIN_ID = "1032355109000";
 
 let studentsDB = [
-  { idCard: "1100100111111", studentId: "6901001", name: "นายสมชาย การบิน", course: "หลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมการบิน", pdpaStatus: "รอตรวจสอบ", pdpaLink: "#", contractStatus: "รอตรวจสอบ", contractLink: "#", transStatus: "รอตรวจสอบ", transLink: "#" },
-  { idCard: "1100100222222", studentId: "6901002", name: "นางสาวสมหญิง น่านฟ้า", course: "หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) สาขาวิชาเทคโนโลยีการบิน", pdpaStatus: "เรียบร้อย", pdpaLink: "doc1.pdf", contractStatus: "รอตรวจสอบ", contractLink: "#", transStatus: "รอตรวจสอบ", transLink: "#" },
-  { idCard: "1100100333333", studentId: "6901003", name: "นายกัปตัน มั่นคง", course: "หลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมการบิน", pdpaStatus: "รอตรวจสอบ", pdpaLink: "#", contractStatus: "เรียบร้อย", contractLink: "doc2.pdf", transStatus: "รอตรวจสอบ", transLink: "#" }
+  { idCard: "1100100111111", studentId: "6901001", name: "นายสมชาย การบิน", course: "หลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมการบิน", pdpaStatus: "รอตรวจสอบ", pdpaLink: "pdpa_sample.pdf", contractStatus: "", contractLink: "", transStatus: "รอตรวจสอบ", transLink: "trans_sample.pdf" },
+  { idCard: "1100100222222", studentId: "6901002", name: "นางสาวสมหญิง น่านฟ้า", course: "หลักสูตรประกาศนียบัตรวิชาชีพชั้นสูง (ปวส.) สาขาวิชาเทคโนโลยีการบิน", pdpaStatus: "เรียบร้อย", pdpaLink: "doc1.pdf", contractStatus: "รอตรวจสอบ", contractLink: "contract_sample.pdf", transStatus: "", transLink: "" },
+  { idCard: "1100100333333", studentId: "6901003", name: "นายกัปตัน มั่นคง", course: "หลักสูตรวิศวกรรมศาสตรบัณฑิต สาขาวิชาวิศวกรรมการบิน", pdpaStatus: "", pdpaLink: "", contractStatus: "เรียบร้อย", contractLink: "doc2.pdf", transStatus: "รอตรวจสอบ", transLink: "trans_sample2.pdf" }
 ];
 
 let currentStudent = null;
@@ -19,7 +19,7 @@ function search() {
     return;
   }
 
-  // ถ้ากรอกเลข Admin ทริกเกอร์เข้าสู่หน้า Admin ทันที
+  // ถ้ากรอกเลข Admin ให้เข้าสู่หน้า Admin ทันที
   if (query === ADMIN_ID) {
     document.getElementById('resultArea').classList.add('hidden');
     document.getElementById('adminArea').classList.remove('hidden');
@@ -28,7 +28,6 @@ function search() {
     return;
   }
 
-  // ค้นหานักศึกษาทั่วไป
   const found = studentsDB.find(s => s.idCard === query);
   if (!found) {
     Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูลนักศึกษา', text: 'กรุณาตรวจสอบเลขประจำตัวประชาชนอีกครั้ง' });
@@ -49,11 +48,10 @@ function updateStudentUI() {
   document.getElementById('resId').innerText = currentStudent.studentId;
   document.getElementById('resCourse').innerText = currentStudent.course;
 
-  updateBadge('pdpaBadge', 'PDPA', currentStudent.pdpaStatus);
-  updateBadge('contractBadge', 'Contract', currentStudent.contractStatus);
-  updateBadge('transBadge', 'Transcript', currentStudent.transStatus);
+  updateBadge('pdpaBadge', 'PDPA', currentStudent.pdpaStatus || 'ยังไม่ส่ง');
+  updateBadge('contractBadge', 'Contract', currentStudent.contractStatus || 'ยังไม่ส่ง');
+  updateBadge('transBadge', 'Transcript', currentStudent.transStatus || 'ยังไม่ส่ง');
 
-  // ตรวจสอบปุ่มระบบบริหารการศึกษา
   const allPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transStatus === 'เรียบร้อย');
   const eduBtn = document.getElementById('eduSystemBtn');
   if (allPassed) {
@@ -68,7 +66,8 @@ function updateBadge(elementId, label, status) {
   el.innerText = `${label}: ${status}`;
   if (status === 'เรียบร้อย') el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
   else if (status === 'ไม่ผ่าน') el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm bg-red-600";
-  else el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
+  else if (status === 'รอตรวจสอบ') el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
+  else el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm bg-gray-400";
 }
 
 function handleEduSystemClick() {
@@ -89,10 +88,10 @@ function logoutAdmin() {
 }
 
 function renderAdminDashboard() {
-  // คำนวณสรุปจำนวนรอตรวจทั้ง 3 เอกสาร
-  const countPdpa = studentsDB.filter(s => s.pdpaStatus === 'รอตรวจสอบ').length;
-  const countContract = studentsDB.filter(s => s.contractStatus === 'รอตรวจสอบ').length;
-  const countTrans = studentsDB.filter(s => s.transStatus === 'รอตรวจสอบ').length;
+  // นับเฉพาะรายการที่มีลิงก์ข้อมูลจริง และมีสถานะเป็น "รอตรวจสอบ" เท่านั้น
+  const countPdpa = studentsDB.filter(s => s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ').length;
+  const countContract = studentsDB.filter(s => s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ').length;
+  const countTrans = studentsDB.filter(s => s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ').length;
 
   document.getElementById('countPdpa').innerText = countPdpa;
   document.getElementById('countContract').innerText = countContract;
@@ -113,11 +112,17 @@ function renderAdminTable() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '';
 
-  // กรองเฉพาะสถานะ "รอตรวจสอบ" ตาม Tab ที่เลือก
+  // กรองเฉพาะนักศึกษาที่มีข้อมูลลิงก์จริง และสถานะเป็น "รอตรวจสอบ" ใน Tab นั้นๆ
   const filtered = studentsDB.filter(s => {
-    if (currentAdminTab === 'pdpa') return s.pdpaStatus === 'รอตรวจสอบ';
-    if (currentAdminTab === 'contract') return s.contractStatus === 'รอตรวจสอบ';
-    if (currentAdminTab === 'trans') return s.transStatus === 'รอตรวจสอบ';
+    if (currentAdminTab === 'pdpa') {
+      return s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ';
+    }
+    if (currentAdminTab === 'contract') {
+      return s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ';
+    }
+    if (currentAdminTab === 'trans') {
+      return s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ';
+    }
     return false;
   });
 
@@ -147,8 +152,15 @@ function renderAdminTable() {
 function openDocViewer(studentId, docType) {
   reviewingStudentId = studentId;
   const s = studentsDB.find(x => x.studentId === studentId);
+  const link = docType === 'pdpa' ? s.pdpaLink : (docType === 'contract' ? s.contractLink : s.transLink);
+  
   document.getElementById('viewerTitle').innerText = `ตรวจสอบเอกสาร (${docType.toUpperCase()}) - ${s.name}`;
-  document.getElementById('viewerBody').innerHTML = `<p class="text-gray-600 font-medium">พรีวิวเอกสารของนักศึกษา ${s.name} (${docType.toUpperCase()})<br><a href="#" class="text-blue-600 underline text-sm mt-2 block" target="_blank">เปิดดูไฟล์ต้นฉบับเต็ม</a></p>`;
+  document.getElementById('viewerBody').innerHTML = `
+    <div class="text-center space-y-3">
+      <p class="text-gray-700 font-medium">กำลังแสดงไฟล์: <span class="font-mono text-theme-green">${link}</span></p>
+      <a href="#" class="inline-block px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold shadow hover:bg-blue-700 transition" target="_blank">เปิดไฟล์เอกสารในแท็บใหม่</a>
+    </div>
+  `;
   document.getElementById('docViewerModal').style.display = 'block';
 }
 
@@ -161,27 +173,35 @@ function adminReviewAction(action) {
   updateDocStatus(reviewingStudentId, currentAdminTab, action === 'pass' ? 'เรียบร้อย' : 'ไม่ผ่าน');
 }
 
-// ฟังก์ชันอัปเดตสถานะ พร้อมเงื่อนไข: หากเลือก "ไม่ผ่าน" จะทำการล้างข้อมูลช่องสถานะและลิงก์ใน Google Sheet (จำลอง) ให้ User กรอกใหม่
+// อัปเดตสถานะ และหากเลือก "ไม่ผ่าน" จะทำการล้างค่าลิงก์และสถานะ เพื่อให้ User ทำใหม่
 function updateDocStatus(studentId, docType, status) {
   const s = studentsDB.find(x => x.studentId === studentId);
   if (!s) return;
 
   if (docType === 'pdpa') {
     s.pdpaStatus = status;
-    if (status === 'ไม่ผ่าน') s.pdpaLink = '#'; // ล้างข้อมูล/ลิงก์ใน Google Sheet
+    if (status === 'ไม่ผ่าน') {
+      s.pdpaLink = ''; // ล้างข้อมูล/ลิงก์ใน Google Sheet ให้เป็นค่าว่าง
+      s.pdpaStatus = ''; // ล้างสถานะ
+    }
   } else if (docType === 'contract') {
     s.contractStatus = status;
-    if (status === 'ไม่ผ่าน') s.contractLink = '#';
+    if (status === 'ไม่ผ่าน') {
+      s.contractLink = '';
+      s.contractStatus = '';
+    }
   } else if (docType === 'trans') {
     s.transStatus = status;
-    if (status === 'ไม่ผ่าน') s.transLink = '#';
+    if (status === 'ไม่ผ่าน') {
+      s.transLink = '';
+      s.transStatus = '';
+    }
   }
 
-  // จำลองการบันทึกอัปเดตข้อมูลลง Google Sheets สำเร็จ
   Swal.fire({
     icon: status === 'เรียบร้อย' ? 'success' : 'warning',
     title: `บันทึกสถานะ: "${status}" เรียบร้อย`,
-    text: status === 'ไม่ผ่าน' ? 'ระบบได้ทำการล้างข้อมูลและลิงก์ใน Google Sheet เรียบร้อยแล้ว เพื่อให้นักศึกษาเข้ามาทำรายการใหม่' : 'อัปเดตสถานะสำเร็จ',
+    text: status === 'ไม่ผ่าน' ? 'ระบบได้ทำการล้างข้อมูลช่องสถานะและลิงก์ใน Google Sheet เรียบร้อยแล้ว เพื่อให้นักศึกษาเข้ามาทำรายการใหม่' : 'อัปเดตสถานะสำเร็จ',
     timer: 1800,
     showConfirmButton: false
   });
@@ -204,10 +224,10 @@ function switchTab(tab) {
     document.getElementById('tabPdpaBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
   } else if (tab === 'contract') {
     document.getElementById('contractSection').classList.remove('hidden');
-    document.getElementById('tabContractBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-transparent border-b-4 border-theme-green transition bg-emerald-50";
+    document.getElementById('tabContractBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
   } else if (tab === 'trans') {
     document.getElementById('transSection').classList.remove('hidden');
-    document.getElementById('tabTransBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-transparent border-b-4 border-theme-green transition bg-emerald-50";
+    document.getElementById('tabTransBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
   }
 }
 
@@ -251,7 +271,6 @@ function submitPdpa() {
     updateStudentUI();
     document.getElementById('pdpaForm').classList.add('hidden');
     document.getElementById('pdpaViewArea').classList.remove('hidden');
-    document.getElementById('viewPdpaBtn').href = '#';
     Swal.fire({ icon: 'success', title: 'บันทึกแบบฟอร์ม PDPA สำเร็จ', text: 'ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบเรียบร้อยแล้ว' });
   }
 }
@@ -268,7 +287,6 @@ function submitContract() {
     updateStudentUI();
     document.getElementById('contractForm').classList.add('hidden');
     document.getElementById('contractViewArea').classList.remove('hidden');
-    document.getElementById('viewContractBtn').href = '#';
     Swal.fire({ icon: 'success', title: 'บันทึกสัญญาการศึกษาสำเร็จ', text: 'ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบเรียบร้อยแล้ว' });
   }
 }
@@ -285,12 +303,10 @@ function uploadFile() {
     updateStudentUI();
     document.getElementById('uploadZone').classList.add('hidden');
     document.getElementById('transViewArea').classList.remove('hidden');
-    document.getElementById('viewTransBtn').href = '#';
     Swal.fire({ icon: 'success', title: 'อัปโหลด Transcript สำเร็จ', text: 'ส่งข้อมูลให้เจ้าหน้าที่ตรวจสอบเรียบร้อยแล้ว' });
   }
 }
 
-// โหลดข้อมูลจังหวัด (จำลองพื้นฐาน)
 window.onload = function() {
   document.getElementById('dateInput').valueAsDate = new Date();
   document.getElementById('contractDate').valueAsDate = new Date();
