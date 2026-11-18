@@ -7,7 +7,6 @@ let activeType = '';
 let savedSigs = { user: null, w1: null, w2: null, studentSig: null, parentSig: null };
 let thaiAddressData = [];
 
-// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล/รหัสไปรษณีย์ เมื่อเปิดหน้าเว็บ
 document.addEventListener("DOMContentLoaded", async () => {
   await initThaiAddress();
 });
@@ -22,14 +21,12 @@ async function initThaiAddress() {
     const res = await fetch(THAI_ADDRESS_DB_URL);
     thaiAddressData = await res.json();
 
-    // ดึงรายชื่อจังหวัดไม่ซ้ำและเรียงตามตัวอักษร
     const provinces = [...new Set(thaiAddressData.map(item => item.province))].sort((a, b) => a.localeCompare(b, 'th'));
     provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
     provinces.forEach(p => {
       provSelect.innerHTML += `<option value="${p}">${p}</option>`;
     });
 
-    // เมื่อเลือกจังหวัด -> กรองเขต/อำเภอ
     provSelect.addEventListener('change', () => {
       const selectedProv = provSelect.value;
       amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
@@ -52,7 +49,6 @@ async function initThaiAddress() {
       amphoeSelect.classList.remove('bg-gray-100');
     });
 
-    // เมื่อเลือกเขต/อำเภอ -> กรองตำบล/แขวง
     amphoeSelect.addEventListener('change', () => {
       const selectedProv = provSelect.value;
       const selectedAmphoe = amphoeSelect.value;
@@ -66,7 +62,6 @@ async function initThaiAddress() {
       }
 
       const tambons = thaiAddressData.filter(item => item.province === selectedProv && item.amphoe === selectedAmphoe);
-      // เรียงชื่อตำบล
       tambons.sort((a, b) => a.district.localeCompare(b.district, 'th'));
       tambons.forEach(t => {
         tambonSelect.innerHTML += `<option value="${t.district}" data-zip="${t.zipcode}">${t.district}</option>`;
@@ -75,7 +70,6 @@ async function initThaiAddress() {
       tambonSelect.classList.remove('bg-gray-100');
     });
 
-    // เมื่อเลือกตำบล/แขวง -> ใส่รหัสไปรษณีย์อัตโนมัติ
     tambonSelect.addEventListener('change', () => {
       const selectedOption = tambonSelect.options[tambonSelect.selectedIndex];
       zipInput.value = selectedOption ? (selectedOption.getAttribute('data-zip') || '') : '';
@@ -123,6 +117,7 @@ function showResult(data) {
   document.getElementById('resName2').innerText = data.name;
   document.getElementById('resName3').innerText = data.name;
   document.getElementById('resId').innerText = data.studentId;
+  document.getElementById('resCourse').innerText = data.course || "-"; // แสดงหลักสูตรจาก Sheet
   
   const now = new Date();
   const offset = now.getTimezoneOffset();
@@ -203,7 +198,6 @@ async function submitPdpa() {
 }
 
 async function submitContract() {
-  const course = document.getElementById('course').value.trim();
   const contractDate = document.getElementById('contractDate').value;
   const birthDate = document.getElementById('birthDate').value;
   const phone = document.getElementById('phone').value.trim();
@@ -221,23 +215,18 @@ async function submitContract() {
   const parentName = document.getElementById('parentName').value.trim();
   const parentPhone = document.getElementById('parentPhone').value.trim();
 
-  // ตรวจสอบช่องว่างที่จำเป็น
-  if (!course) return Swal.fire('แจ้งเตือน', 'กรุณาระบุหลักสูตร', 'warning');
   if (!contractDate || !birthDate) return Swal.fire('แจ้งเตือน', 'กรุณาเลือกวันที่ทำสัญญาและวันเกิดให้ครบถ้วน', 'warning');
   
-  // บังคับ Format เบอร์โทร 10 หลัก
   const phoneRegex = /^0[0-9]{9}$/;
   if (!phoneRegex.test(phone)) {
     return Swal.fire('รูปแบบไม่ถูกต้อง', 'กรุณากรอกเบอร์โทรศัพท์นักศึกษาเป็นตัวเลข 10 หลัก (ขึ้นต้นด้วย 0)', 'warning');
   }
 
-  // บังคับ Format อีเมล
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return Swal.fire('รูปแบบไม่ถูกต้อง', 'กรุณากรอกรูปแบบอีเมลให้ถูกต้อง (เช่น example@email.com)', 'warning');
   }
 
-  // ตรวจสอบที่อยู่
   if (!addrNo || !province || !amphoe || !tambon || !zipcode) {
     return Swal.fire('แจ้งเตือน', 'กรุณากรอกบ้านเลขที่ และเลือกจังหวัด เขต/อำเภอ ตำบล/แขวง ให้ครบถ้วน', 'warning');
   }
@@ -250,7 +239,6 @@ async function submitContract() {
   if (!savedSigs.studentSig) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อนักศึกษา', 'warning');
   if (!savedSigs.parentSig) return Swal.fire('แจ้งเตือน', 'กรุณาลายมือชื่อผู้ปกครอง', 'warning');
 
-  // ประกอบข้อความที่อยู่รวมให้สวยงาม (ปรับคำนำหน้า แขวง/เขต สำหรับกรุงเทพฯ อัตโนมัติ)
   const isBkk = province === 'กรุงเทพมหานคร';
   const subdistrictPrefix = isBkk ? 'แขวง' : 'ตำบล';
   const districtPrefix = isBkk ? 'เขต' : 'อำเภอ';
@@ -270,7 +258,8 @@ async function submitContract() {
 
   const formData = {
     row: current.row, name: current.name, idCard: current.idCard, studentId: current.studentId,
-    course, contractDate, birthDate, address, phone, email, parentName, parentPhone,
+    course: current.course, // ดึงหลักสูตรจากข้อมูลที่ค้นหามา (คอลัมน์ D)
+    contractDate, birthDate, address, phone, email, parentName, parentPhone,
     studentSig: savedSigs.studentSig, parentSig: savedSigs.parentSig
   };
 
