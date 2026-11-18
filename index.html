@@ -13,12 +13,12 @@
     .status-gray { background-color: #9ca3af; } 
     .status-yellow { background-color: #f59e0b; } 
     .status-purple { background-color: #8b5cf6; }
-    .status-green { background-color: #10b981; }
+    .status-green { background-color: #128F8B; }
     
-    /* ธีมสีเขียวเข้มและสีทอง */
-    .bg-theme-green { background-color: #0b462c; }
-    .text-theme-green { color: #0b462c; }
-    .border-theme-green { border-color: #0b462c; }
+    /* ธีมสีเขียว #128F8B และสีทอง */
+    .bg-theme-green { background-color: #128F8B; }
+    .text-theme-green { color: #128F8B; }
+    .border-theme-green { border-color: #128F8B; }
     .bg-theme-gold { background-color: #c5a059; }
     .bg-theme-gold:hover { background-color: #b08d48; }
     
@@ -33,10 +33,10 @@
   <div class="max-w-3xl mx-auto space-y-6">
     <div class="bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col justify-between border border-gray-100">
       
-      <!-- ส่วน Header ธีมสีเขียว-ทอง พร้อมโลโก้ใหม่ -->
+      <!-- ส่วน Header ธีมสี #128F8B พร้อมโลโก้ -->
       <div class="bg-theme-green p-6 md:p-8 text-white text-center space-y-4">
         <div class="flex justify-center">
-          <img src="https://i.ibb.co/3ykXWv2/Logo-CATC.png" alt="CATC Logo" class="h-20 md:h-24 filter drop-shadow-md object-contain" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/3/36/Logo_of_the_Civil_Aviation_Training_Center.svg'">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/Logo_of_the_Civil_Aviation_Training_Center.svg" alt="CATC Logo" class="h-20 md:h-24 filter drop-shadow-md object-contain bg-white p-2 rounded-2xl shadow">
         </div>
         <div>
           <h1 class="text-xl md:text-3xl font-bold tracking-wide">ระบบจัดส่งเอกสาร สถาบันการบินพลเรือน</h1>
@@ -46,22 +46,22 @@
       
       <div class="p-4 md:p-10 border-b bg-white">
         <div class="flex flex-col md:flex-row gap-3">
-          <input type="tel" id="idSearch" maxlength="13" placeholder="กรอกเลขบัตรประชาชน 13 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="flex-1 p-3.5 md:p-4 border-2 rounded-2xl outline-none focus:border-green-800 text-lg md:text-xl font-mono text-center md:text-left">
+          <input type="tel" id="idSearch" maxlength="13" placeholder="กรอกเลขบัตรประชาชน 13 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="flex-1 p-3.5 md:p-4 border-2 rounded-2xl outline-none focus:border-[#128F8B] text-lg md:text-xl font-mono text-center md:text-left">
           <button onclick="search()" class="bg-theme-green hover:bg-opacity-90 text-white px-8 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95">ค้นหาข้อมูล</button>
         </div>
       </div>
 
       <div id="resultArea" class="hidden p-4 md:p-10 space-y-6 md:space-y-8">
         <!-- แสดงข้อมูลนักศึกษาและ Status ทั้ง 3 พร้อมคำอธิบายและปุ่มระบบบริหารการศึกษา -->
-        <div class="bg-green-50 p-5 md:p-6 rounded-3xl border border-green-100 space-y-4">
+        <div class="bg-emerald-50 p-5 md:p-6 rounded-3xl border border-emerald-100 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><span class="text-xs font-bold text-green-700 uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
-            <div><span class="text-xs font-bold text-green-700 uppercase">รหัสนักศึกษา</span><p id="resId" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
-            <div class="md:col-span-2"><span class="text-xs font-bold text-green-700 uppercase">หลักสูตร</span><p id="resCourse" class="text-base md:text-lg font-bold text-green-900">-</p></div>
+            <div><span class="text-xs font-bold text-[#128F8B] uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
+            <div><span class="text-xs font-bold text-[#128F8B] uppercase">รหัสนักศึกษา</span><p id="resId" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
+            <div class="md:col-span-2"><span class="text-xs font-bold text-[#128F8B] uppercase">หลักสูตร</span><p id="resCourse" class="text-base md:text-lg font-bold text-gray-800">-</p></div>
           </div>
           
           <!-- Badge สถานะ -->
-          <div class="pt-3 border-t border-green-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
+          <div class="pt-3 border-t border-emerald-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
             <span id="pdpaBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">PDPA</span>
             <span id="contractBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">Contract</span>
             <span id="transBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">Transcript</span>
@@ -72,7 +72,7 @@
             <i class="fa-solid fa-circle-info text-theme-green mr-1"></i> โปรดดำเนินการทั้ง 3 เอกสารให้เรียบร้อย เพื่อเข้าสู่ระบบบริหารการศึกษา
           </p>
 
-          <!-- ปุ่มระบบบริหารการศึกษา (สีทองเมื่อผ่านครบ) -->
+          <!-- ปุ่มระบบบริหารการศึกษา -->
           <div class="pt-2">
             <button id="eduSystemBtn" onclick="handleEduSystemClick()" class="w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray">
               <i class="fa-solid fa-graduation-cap mr-2"></i> ระบบบริหารการศึกษา
@@ -82,7 +82,7 @@
 
         <!-- Tab Navigation -->
         <div class="flex border-b border-gray-200 text-xs md:text-base">
-          <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-green-50">1. PDPA</button>
+          <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50">1. PDPA</button>
           <button onclick="switchTab('contract')" id="tabContractBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">2. สัญญาการศึกษา</button>
           <button onclick="switchTab('trans')" id="tabTransBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">3. อัปโหลด Transcript</button>
         </div>
@@ -92,30 +92,30 @@
           <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">1. แบบฟอร์มแสดงความยินยอม (PDPA)</h2>
           <div id="pdpaForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
-              <div><label class="text-sm font-bold text-gray-600 mb-1 block">เขียนที่</label><input type="text" id="writtenAt" value="สถาบันการบินพลเรือน" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm md:text-base"></div>
-              <div><label class="text-sm font-bold text-gray-600 mb-1 block">วันที่</label><input type="date" id="dateInput" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm md:text-base"></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">เขียนที่</label><input type="text" id="writtenAt" value="สถาบันการบินพลเรือน" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm md:text-base"></div>
+              <div><label class="text-sm font-bold text-gray-600 mb-1 block">วันที่</label><input type="date" id="dateInput" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm md:text-base"></div>
             </div>
 
             <div class="space-y-4 text-xs md:text-sm leading-relaxed text-gray-700">
               <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
                 <p><strong>ข้อ 1.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน เก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อประโยชน์ในการดำเนินการด้านทะเบียนประวัติ การจัดการเรียนการสอน การวัดและประเมินผลการศึกษา รวมถึงการให้บริการและสวัสดิการต่าง ๆ แก่นักศึกษาตลอดระยะเวลาที่ศึกษาอยู่และหลังสำเร็จการศึกษา</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-green-700 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
+                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q1" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
               </div>
               <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
                 <p><strong>ข้อ 2.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน เปิดเผยข้อมูลส่วนบุคคล ข้อมูลผลการเรียน และข้อมูลการสำเร็จการศึกษาของข้าพเจ้า ให้แก่หน่วยงานภาครัฐ หน่วยงานกำกับดูแลด้านการบิน สถาบันการศึกษาอื่น หรือสถานประกอบการ เพื่อการตรวจสอบวุฒิการศึกษา การฝึกงาน การสหกิจศึกษา หรือการสมัครเข้าทำงาน</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-green-700 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
+                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q2" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
               </div>
               <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
                 <p><strong>ข้อ 3.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน เก็บรวบรวม ใช้ หรือเปิดเผยข้อมูลส่วนบุคคลที่มีความอ่อนไหว (Sensitive Data) เช่น ข้อมูลสุขภาพ ประวัติการรักษาพยาบาล ผลตรวจร่างกาย หรือความพิการ เพื่อประกอบการพิจารณาคุณสมบัติผู้เรียน การดูแลด้านสุขอนามัย และความปลอดภัยในการฝึกภาคปฏิบัติ</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-green-700 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
+                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q3" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
               </div>
               <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
                 <p><strong>ข้อ 4.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน บันทึกภาพนิ่ง ภาพเคลื่อนไหว และเสียงของข้าพเจ้าในระหว่างการเข้าร่วมกิจกรรมทางวิชาการ พิธีการ หรือกิจกรรมของสถาบัน เพื่อใช้ในการประชาสัมพันธ์ เผยแพร่ผ่านสื่อสิ่งพิมพ์ เว็บไซต์ หรือสื่อสังคมออนไลน์ของสถาบัน</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-green-700 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
+                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q4" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
               </div>
               <div class="p-4 md:p-5 border rounded-2xl bg-white shadow-sm space-y-3">
                 <p><strong>ข้อ 5.</strong> ข้าพเจ้าตกลงยินยอมให้สถาบันการบินพลเรือน ใช้ข้อมูลการติดต่อของข้าพเจ้า เพื่อแจ้งข่าวสาร ประชาสัมพันธ์หลักสูตร การฝึกอบรม สัมมนา กิจกรรมศิษย์เก่า และการสำรวจภาวะการมีงานทำของบัณฑิตในอนาคต</p>
-                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-green-700 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
+                <div class="flex gap-6 font-bold pt-2 border-t"><label class="text-[#128F8B] flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ยินยอม" checked class="w-4 h-4"> ยินยอม</label><label class="text-red-600 flex items-center gap-2 cursor-pointer"><input type="radio" name="q5" value="ไม่ยินยอม" class="w-4 h-4"> ไม่ยินยอม</label></div>
               </div>
             </div>
 
@@ -127,7 +127,7 @@
             
             <button onclick="submitPdpa()" class="w-full bg-theme-green hover:bg-opacity-90 text-white py-4 rounded-2xl font-bold text-lg shadow-xl transition active:scale-95">บันทึกและสร้าง PDF PDPA</button>
           </div>
-          <div id="pdpaViewArea" class="hidden"><a id="viewPdpaBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-green-100 text-green-900 rounded-2xl font-bold border-2 border-green-300">ดูเอกสาร PDPA ที่บันทึกแล้ว</a></div>
+          <div id="pdpaViewArea" class="hidden"><a id="viewPdpaBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-emerald-50 text-teal-800 rounded-2xl font-bold border-2 border-emerald-200">ดูเอกสาร PDPA ที่บันทึกแล้ว</a></div>
         </div>
 
         <!-- 2. ส่วน Contract -->
@@ -137,19 +137,19 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
               <div>
                 <label class="text-sm font-bold text-gray-600 mb-1 block">วันที่ทำสัญญา <span class="text-red-500">*</span></label>
-                <input type="date" id="contractDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                <input type="date" id="contractDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
               </div>
               <div>
                 <label class="text-sm font-bold text-gray-600 mb-1 block">วันเกิด <span class="text-red-500">*</span></label>
-                <input type="date" id="birthDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                <input type="date" id="birthDate" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
               </div>
               <div>
                 <label class="text-sm font-bold text-gray-600 mb-1 block">เบอร์โทรศัพท์ (10 หลัก) <span class="text-red-500">*</span></label>
-                <input type="tel" id="phone" maxlength="10" placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white font-mono text-sm">
+                <input type="tel" id="phone" maxlength="10" placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white font-mono text-sm">
               </div>
               <div>
                 <label class="text-sm font-bold text-gray-600 mb-1 block">อีเมล <span class="text-red-500">*</span></label>
-                <input type="email" id="email" placeholder="example@email.com" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                <input type="email" id="email" placeholder="example@email.com" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
               </div>
 
               <!-- ที่อยู่ปัจจุบัน -->
@@ -158,38 +158,38 @@
                 <div class="grid grid-cols-2 gap-2 md:grid-cols-4 md:gap-3 mb-3">
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">บ้านเลขที่ <span class="text-red-500">*</span></label>
-                    <input type="text" id="addrNo" placeholder="เช่น 123/4" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                    <input type="text" id="addrNo" placeholder="เช่น 123/4" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                   </div>
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">หมู่ที่</label>
-                    <input type="text" id="addrMoo" placeholder="เช่น 5 หรือ -" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                    <input type="text" id="addrMoo" placeholder="เช่น 5 หรือ -" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                   </div>
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">ตรอก/ซอย</label>
-                    <input type="text" id="addrSoi" placeholder="ซอย (ถ้ามี)" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                    <input type="text" id="addrSoi" placeholder="ซอย (ถ้ามี)" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                   </div>
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">ถนน</label>
-                    <input type="text" id="addrRoad" placeholder="ถนน (ถ้ามี)" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                    <input type="text" id="addrRoad" placeholder="ถนน (ถ้ามี)" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">จังหวัด <span class="text-red-500">*</span></label>
-                    <select id="provinceSelect" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                    <select id="provinceSelect" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                       <option value="">-- กำลังโหลดข้อมูลจังหวัด --</option>
                     </select>
                   </div>
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">เขต/อำเภอ <span class="text-red-500">*</span></label>
-                    <select id="amphoeSelect" disabled class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-gray-100 text-sm">
+                    <select id="amphoeSelect" disabled class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm">
                       <option value="">-- เลือกเขต/อำเภอ --</option>
                     </select>
                   </div>
                   <div>
                     <label class="text-xs font-bold text-gray-600 mb-1 block">ตำบล/แขวง <span class="text-red-500">*</span></label>
-                    <select id="tambonSelect" disabled class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-gray-100 text-sm">
+                    <select id="tambonSelect" disabled class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm">
                       <option value="">-- เลือกตำบล/แขวง --</option>
                     </select>
                   </div>
@@ -203,11 +203,11 @@
               <div class="md:col-span-2 pt-3 border-t grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label class="text-sm font-bold text-gray-600 mb-1 block">ชื่อ-นามสกุล ผู้ปกครอง <span class="text-red-500">*</span></label>
-                  <input type="text" id="parentName" placeholder="ระบุคำนำหน้า ชื่อ-นามสกุล" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white text-sm">
+                  <input type="text" id="parentName" placeholder="ระบุคำนำหน้า ชื่อ-นามสกุล" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                 </div>
                 <div>
                   <label class="text-sm font-bold text-gray-600 mb-1 block">เบอร์โทรศัพท์ผู้ปกครอง (10 หลัก) <span class="text-red-500">*</span></label>
-                  <input type="tel" id="parentPhone" maxlength="10" placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-green-800 bg-white font-mono text-sm">
+                  <input type="tel" id="parentPhone" maxlength="10" placeholder="08xxxxxxxx" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white font-mono text-sm">
                 </div>
               </div>
             </div>
@@ -242,7 +242,7 @@
             </div>
             <button onclick="uploadFile()" class="mt-4 bg-theme-green text-white px-8 md:px-12 py-3 rounded-2xl font-bold shadow-lg text-sm md:text-base">อัปโหลดไฟล์</button>
           </div>
-          <div id="transViewArea" class="hidden"><a id="viewTransBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-green-50 text-green-900 rounded-2xl font-bold border-2 border-green-300">ดู Transcript ที่อัปโหลดแล้ว</a></div>
+          <div id="transViewArea" class="hidden"><a id="viewTransBtn" href="#" target="_blank" class="block w-full text-center p-4 bg-emerald-50 text-teal-800 rounded-2xl font-bold border-2 border-emerald-200">ดู Transcript ที่อัปโหลดแล้ว</a></div>
         </div>
 
       </div>
