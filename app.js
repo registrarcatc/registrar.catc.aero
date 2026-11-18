@@ -183,22 +183,20 @@ function showResult(data) {
     document.getElementById('contractViewArea').classList.add('hidden');
   }
 
-  // 3. Transcript (แก้ไขให้เช็คสถานะและแสดงผลถูกต้อง)
+  // 3. Transcript
   document.getElementById('transBadge').innerText = "Transcript: " + (data.transcriptStatus || "ยังไม่ส่ง");
   document.getElementById('transBadge').className = "px-4 py-1.5 rounded-full text-white text-xs font-bold " + getBadgeClass(data.transcriptStatus);
   
   const uz = document.getElementById('uploadZone');
   const transView = document.getElementById('transViewArea');
   
-  uz.classList.add('hidden');
-  transView.classList.add('hidden');
-
-  if (!data.transcriptStatus || data.transcriptStatus === "ยังไม่ส่ง" || data.transcriptStatus === "แก้ไข") {
-    uz.classList.remove('hidden');
-  }
   if (data.transcriptFileUrl) {
+    uz.classList.add('hidden');
     transView.classList.remove('hidden');
     document.getElementById('viewTransBtn').href = data.transcriptFileUrl;
+  } else {
+    uz.classList.remove('hidden');
+    transView.classList.add('hidden');
   }
 }
 
