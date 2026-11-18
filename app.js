@@ -11,7 +11,7 @@ let currentStudent = null;
 let currentAdminTab = 'pdpa';
 let reviewingStudentId = null;
 
-// ฟังก์ชันค้นหาข้อมูล (รองรับเลข Admin)
+// ฟังก์ชันค้นหาข้อมูล (รองรับทั้งเลขนักศึกษาปกติ และเลข Admin)
 function search() {
   const query = document.getElementById('idSearch').value.trim();
   if (query.length !== 13) {
@@ -19,7 +19,7 @@ function search() {
     return;
   }
 
-  // ถ้ากรอกเลข Admin ให้เข้าสู่หน้า Admin ทันที
+  // 1. ตรวจสอบว่าเป็นเลข Admin หรือไม่
   if (query === ADMIN_ID) {
     document.getElementById('resultArea').classList.add('hidden');
     document.getElementById('adminArea').classList.remove('hidden');
@@ -28,6 +28,7 @@ function search() {
     return;
   }
 
+  // 2. ค้นหาข้อมูลนักศึกษาตามปกติ
   const found = studentsDB.find(s => s.idCard === query);
   if (!found) {
     Swal.fire({ icon: 'error', title: 'ไม่พบข้อมูลนักศึกษา', text: 'กรุณาตรวจสอบเลขประจำตัวประชาชนอีกครั้ง' });
@@ -52,6 +53,7 @@ function updateStudentUI() {
   updateBadge('contractBadge', 'Contract', currentStudent.contractStatus || 'ยังไม่ส่ง');
   updateBadge('transBadge', 'Transcript', currentStudent.transStatus || 'ยังไม่ส่ง');
 
+  // ตรวจสอบว่าเอกสารผ่านครบทั้ง 3 รายการหรือไม่ เพื่อเปิดปุ่มเข้าระบบบริหารการศึกษา
   const allPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transStatus === 'เรียบร้อย');
   const eduBtn = document.getElementById('eduSystemBtn');
   if (allPassed) {
@@ -88,7 +90,7 @@ function logoutAdmin() {
 }
 
 function renderAdminDashboard() {
-  // นับเฉพาะรายการที่มีลิงก์ข้อมูลจริง และมีสถานะเป็น "รอตรวจสอบ" เท่านั้น
+  // นับเฉพาะรายการที่มีการส่งข้อมูลจริง (มีลิงก์) และสถานะเป็น "รอตรวจสอบ"
   const countPdpa = studentsDB.filter(s => s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ').length;
   const countContract = studentsDB.filter(s => s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ').length;
   const countTrans = studentsDB.filter(s => s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ').length;
@@ -112,17 +114,11 @@ function renderAdminTable() {
   const tbody = document.getElementById('adminTableBody');
   tbody.innerHTML = '';
 
-  // กรองเฉพาะนักศึกษาที่มีข้อมูลลิงก์จริง และสถานะเป็น "รอตรวจสอบ" ใน Tab นั้นๆ
+  // กรองเฉพาะนักศึกษาที่มีข้อมูลลิงก์จริงและสถานะเป็น "รอตรวจสอบ" ใน Tab นั้น ๆ
   const filtered = studentsDB.filter(s => {
-    if (currentAdminTab === 'pdpa') {
-      return s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ';
-    }
-    if (currentAdminTab === 'contract') {
-      return s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ';
-    }
-    if (currentAdminTab === 'trans') {
-      return s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ';
-    }
+    if (currentAdminTab === 'pdpa') return s.pdpaLink && s.pdpaLink !== '#' && s.pdpaStatus === 'รอตรวจสอบ';
+    if (currentAdminTab === 'contract') return s.contractLink && s.contractLink !== '#' && s.contractStatus === 'รอตรวจสอบ';
+    if (currentAdminTab === 'trans') return s.transLink && s.transLink !== '#' && s.transStatus === 'รอตรวจสอบ';
     return false;
   });
 
@@ -173,35 +169,26 @@ function adminReviewAction(action) {
   updateDocStatus(reviewingStudentId, currentAdminTab, action === 'pass' ? 'เรียบร้อย' : 'ไม่ผ่าน');
 }
 
-// อัปเดตสถานะ และหากเลือก "ไม่ผ่าน" จะทำการล้างค่าลิงก์และสถานะ เพื่อให้ User ทำใหม่
+// อัปเดตสถานะ: ถ้าเลือก "ไม่ผ่าน" จะทำการล้างค่าลิงก์และสถานะ เพื่อให้ User กลับมาทำใหม่
 function updateDocStatus(studentId, docType, status) {
   const s = studentsDB.find(x => x.studentId === studentId);
   if (!s) return;
 
   if (docType === 'pdpa') {
     s.pdpaStatus = status;
-    if (status === 'ไม่ผ่าน') {
-      s.pdpaLink = ''; // ล้างข้อมูล/ลิงก์ใน Google Sheet ให้เป็นค่าว่าง
-      s.pdpaStatus = ''; // ล้างสถานะ
-    }
+    if (status === 'ไม่ผ่าน') { s.pdpaLink = ''; s.pdpaStatus = ''; }
   } else if (docType === 'contract') {
     s.contractStatus = status;
-    if (status === 'ไม่ผ่าน') {
-      s.contractLink = '';
-      s.contractStatus = '';
-    }
+    if (status === 'ไม่ผ่าน') { s.contractLink = ''; s.contractStatus = ''; }
   } else if (docType === 'trans') {
     s.transStatus = status;
-    if (status === 'ไม่ผ่าน') {
-      s.transLink = '';
-      s.transStatus = '';
-    }
+    if (status === 'ไม่ผ่าน') { s.transLink = ''; s.transStatus = ''; }
   }
 
   Swal.fire({
     icon: status === 'เรียบร้อย' ? 'success' : 'warning',
     title: `บันทึกสถานะ: "${status}" เรียบร้อย`,
-    text: status === 'ไม่ผ่าน' ? 'ระบบได้ทำการล้างข้อมูลช่องสถานะและลิงก์ใน Google Sheet เรียบร้อยแล้ว เพื่อให้นักศึกษาเข้ามาทำรายการใหม่' : 'อัปเดตสถานะสำเร็จ',
+    text: status === 'ไม่ผ่าน' ? 'ระบบได้ทำการล้างข้อมูลช่องสถานะและลิงก์เรียบร้อยแล้ว เพื่อให้นักศึกษาเข้ามาทำรายการใหม่' : 'อัปเดตสถานะสำเร็จ',
     timer: 1800,
     showConfirmButton: false
   });
@@ -209,7 +196,7 @@ function updateDocStatus(studentId, docType, status) {
   renderAdminDashboard();
 }
 
-// ----------------- TAB & FORM LOGIC -----------------
+// ----------------- TAB & FORM LOGIC (ส่วนของนักศึกษาเดิม) -----------------
 function switchTab(tab) {
   document.getElementById('pdpaSection').classList.add('hidden');
   document.getElementById('contractSection').classList.add('hidden');
@@ -312,6 +299,8 @@ window.onload = function() {
   document.getElementById('contractDate').valueAsDate = new Date();
   
   const provSelect = document.getElementById('provinceSelect');
-  provSelect.innerHTML = '<option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option><option value="นนทบุรี">นนทบุรี</option><option value="สมุทรปราการ">สมุทรปราการ</option>';
-  document.getElementById('zipcodeInput').value = '10110';
+  if (provSelect) {
+    provSelect.innerHTML = '<option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option><option value="นนทบุรี">นนทบุรี</option><option value="สมุทรปราการ">สมุทรปราการ</option>';
+    document.getElementById('zipcodeInput').value = '10110';
+  }
 };
