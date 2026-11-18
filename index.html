@@ -37,18 +37,31 @@
       </div>
 
       <div id="resultArea" class="hidden p-4 md:p-10 space-y-6 md:space-y-8">
-        <!-- แสดงข้อมูลนักศึกษาและ Status ทั้ง 3 -->
+        <!-- แสดงข้อมูลนักศึกษาและ Status ทั้ง 3 พร้อมคำอธิบายและปุ่มระบบบริหารการศึกษา -->
         <div class="bg-blue-50 p-5 md:p-6 rounded-3xl border border-blue-100 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><span class="text-xs font-bold text-blue-400 uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-lg md:text-xl font-bold text-blue-900">-</p></div>
             <div><span class="text-xs font-bold text-blue-400 uppercase">รหัสนักศึกษา</span><p id="resId" class="text-lg md:text-xl font-bold text-blue-900">-</p></div>
             <div class="md:col-span-2"><span class="text-xs font-bold text-blue-400 uppercase">หลักสูตร</span><p id="resCourse" class="text-base md:text-lg font-bold text-indigo-900">-</p></div>
           </div>
-          <!-- Badge สถานะจัดเรียง Grid ยืดหยุ่นสวยงามบนมือถือ -->
+          
+          <!-- Badge สถานะ -->
           <div class="pt-3 border-t grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
             <span id="pdpaBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">PDPA</span>
             <span id="contractBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">Contract</span>
             <span id="transBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">Transcript</span>
+          </div>
+
+          <!-- คำอธิบายสถานะทั้ง 3 -->
+          <p class="text-center text-xs md:text-sm text-gray-600 font-medium pt-1">
+            <i class="fa-solid fa-circle-info text-blue-600 mr-1"></i> โปรดดำเนินการทั้ง 3 เอกสารให้เรียบร้อย เพื่อเข้าสู่ระบบบริหารการศึกษา
+          </p>
+
+          <!-- ปุ่มระบบบริหารการศึกษา -->
+          <div class="pt-2">
+            <button id="eduSystemBtn" onclick="handleEduSystemClick()" class="w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray">
+              <i class="fa-solid fa-graduation-cap mr-2"></i> ระบบบริหารการศึกษา
+            </button>
           </div>
         </div>
 
