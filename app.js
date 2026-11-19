@@ -373,11 +373,14 @@ function renderAdminTable() {
           <a href="${fileUrl}" target="_blank" class="inline-block px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold hover:bg-blue-200 transition"><i class="fa-solid fa-eye mr-1"></i> ดูเอกสาร</a>
         </td>
         <td class="p-4 text-center">
-          <select onchange="handleAdminSelectChange(this, ${s.row}, '${currentAdminTab}')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm">
-            <option value="รอตรวจสอบ" selected class="bg-white text-gray-800">⏳ รอตรวจสอบ</option>
-            <option value="เรียบร้อย" class="bg-white text-green-700 font-bold">✅ เรียบร้อย</option>
-            <option value="ไม่ผ่าน" class="bg-white text-red-600 font-bold">❌ ไม่ผ่าน (ล้างข้อมูล)</option>
-          </select>
+          <div class="inline-flex items-center gap-2">
+            <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'เรียบร้อย')" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
+              ✅ เรียบร้อย
+            </button>
+            <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ไม่ผ่าน')" class="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm transition active:scale-95">
+              ❌ ไม่ผ่าน
+            </button>
+          </div>
         </td>
       </tr>
     `;
@@ -396,12 +399,15 @@ function renderAdminTable() {
           </a>
         </div>
         <div class="flex items-center justify-between gap-2 pt-1">
-          <span class="text-xs font-bold text-gray-600">พิจารณาผล:</span>
-          <select onchange="handleAdminSelectChange(this, ${s.row}, '${currentAdminTab}')" class="flex-1 max-w-[200px] px-3 py-2 rounded-xl text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm">
-            <option value="รอตรวจสอบ" selected class="bg-white text-gray-800">⏳ รอตรวจสอบ</option>
-            <option value="เรียบร้อย" class="bg-white text-green-700 font-bold">✅ เรียบร้อย</option>
-            <option value="ไม่ผ่าน" class="bg-white text-red-600 font-bold">❌ ไม่ผ่าน (ล้างข้อมูล)</option>
-          </select>
+          <span class="text-xs font-bold text-gray-600 shrink-0">พิจารณาผล:</span>
+          <div class="flex items-center gap-2 flex-1 justify-end">
+            <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'เรียบร้อย')" class="flex-1 max-w-[120px] py-2 px-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95">
+              ✅ เรียบร้อย
+            </button>
+            <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ไม่ผ่าน')" class="flex-1 max-w-[120px] py-2 px-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold shadow-sm transition active:scale-95">
+              ❌ ไม่ผ่าน
+            </button>
+          </div>
         </div>
       </div>
     `;
