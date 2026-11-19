@@ -1,4 +1,4 @@
-// *** ใส่ URL Web App ของคุณตรงนี้ ***
+// *** URL Web App ของ Google Apps Script ***
 const API_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
 const ADMIN_ID = "1032355109000";
 
@@ -24,6 +24,7 @@ async function search() {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        redirect: 'follow',
         body: JSON.stringify({ action: 'getAdminList' })
       });
       const res = await response.json();
@@ -48,6 +49,7 @@ async function search() {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({ action: 'searchStudent', idCard: idCard })
     });
     const res = await response.json();
@@ -115,8 +117,8 @@ function renderStudentUI() {
     document.getElementById('transViewArea').classList.add('hidden');
   }
 
-  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อ "ผ่าน" ทั้ง 3 รายการ)
-  const isAllPassed = (currentStudent.pdpaStatus === 'ผ่าน' && currentStudent.contractStatus === 'ผ่าน' && currentStudent.transcriptStatus === 'ผ่าน');
+  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อสถานะเป็น "เรียบร้อย" ทั้ง 3 รายการ)
+  const isAllPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transcriptStatus === 'เรียบร้อย');
   const eduBtn = document.getElementById('eduSystemBtn');
   if (isAllPassed) {
     eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90 cursor-pointer";
@@ -129,7 +131,7 @@ function setBadge(id, title, status) {
   const el = document.getElementById(id);
   const displayStatus = status ? status : 'รอดำเนินการ';
   el.innerText = `${title}: ${displayStatus}`;
-  if (status === 'ผ่าน') {
+  if (status === 'เรียบร้อย') {
     el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
   } else if (status === 'รอตรวจสอบ') {
     el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
@@ -140,9 +142,9 @@ function setBadge(id, title, status) {
 
 function handleEduSystemClick() {
   if (!currentStudent) return;
-  const isAllPassed = (currentStudent.pdpaStatus === 'ผ่าน' && currentStudent.contractStatus === 'ผ่าน' && currentStudent.transcriptStatus === 'ผ่าน');
+  const isAllPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transcriptStatus === 'เรียบร้อย');
   if (!isAllPassed) {
-    Swal.fire({ icon: 'warning', title: 'ยังไม่สามารถเข้าสู่ระบบได้', text: 'เอกสารทั้ง 3 รายการต้องได้รับการตรวจสอบและมีสถานะ "ผ่าน" ครบทั้งหมดก่อน' });
+    Swal.fire({ icon: 'warning', title: 'ยังไม่สามารถเข้าสู่ระบบได้', text: 'เอกสารทั้ง 3 รายการต้องได้รับการตรวจสอบและมีสถานะ "เรียบร้อย" ครบทั้งหมดก่อน' });
     return;
   }
   window.open('https://reg.catc.or.th', '_blank');
@@ -181,6 +183,7 @@ async function submitPdpa() {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({ action: 'savePdpa', formData: formData })
     });
     const res = await response.json();
@@ -247,6 +250,7 @@ async function submitContract() {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({ action: 'saveContract', formData: formData })
     });
     const res = await response.json();
@@ -283,6 +287,7 @@ async function uploadFile() {
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
+        redirect: 'follow',
         body: JSON.stringify({
           action: 'uploadTranscript',
           base64: reader.result,
@@ -363,21 +368,38 @@ function renderAdminTable() {
         <td class="p-4 text-center">
           <a href="${fileUrl}" target="_blank" class="inline-block px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-xs font-bold hover:bg-blue-200 transition"><i class="fa-solid fa-eye mr-1"></i> ดูเอกสาร</a>
         </td>
-        <td class="p-4 text-center space-x-2">
-          <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ผ่าน')" class="px-3 py-1.5 bg-[#128F8B] text-white rounded-lg text-xs font-bold hover:opacity-90 transition"><i class="fa-solid fa-check mr-1"></i> เรียบร้อย</button>
-          <button onclick="adminSetStatus(${s.row}, '${currentAdminTab}', 'ไม่ผ่าน')" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-bold hover:bg-red-700 transition"><i class="fa-solid fa-xmark mr-1"></i> ไม่ผ่าน</button>
+        <td class="p-4 text-center">
+          <select onchange="handleAdminSelectChange(this, ${s.row}, '${currentAdminTab}')" class="px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm">
+            <option value="รอตรวจสอบ" selected class="bg-white text-gray-800">⏳ รอตรวจสอบ</option>
+            <option value="เรียบร้อย" class="bg-white text-green-700 font-bold">✅ เรียบร้อย</option>
+            <option value="ไม่ผ่าน" class="bg-white text-red-600 font-bold">❌ ไม่ผ่าน (ล้างข้อมูล)</option>
+          </select>
         </td>
       </tr>
     `;
   });
 }
 
-async function adminSetStatus(row, docType, decision) {
+function handleAdminSelectChange(selectEl, row, docType) {
+  const decision = selectEl.value;
+  if (decision === 'รอตรวจสอบ') return;
+
+  if (decision === 'เรียบร้อย') {
+    selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-green-600 outline-none cursor-pointer shadow-sm";
+  } else if (decision === 'ไม่ผ่าน') {
+    selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 outline-none cursor-pointer shadow-sm";
+  }
+
+  adminSetStatus(row, docType, decision, selectEl);
+}
+
+async function adminSetStatus(row, docType, decision, selectEl) {
   Swal.fire({ title: 'กำลังอัปเดตสถานะใน Google Sheet...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
+      redirect: 'follow',
       body: JSON.stringify({
         action: 'updateAdminStatus',
         row: row,
@@ -391,20 +413,20 @@ async function adminSetStatus(row, docType, decision) {
       const target = adminStudentsList.find(s => s.row === row);
       if (target) {
         if (docType === 'pdpa') {
-          target.pdpaStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          target.pdpaStatus = decision === 'เรียบร้อย' ? 'เรียบร้อย' : '';
           if (decision === 'ไม่ผ่าน') target.pdpaPdfUrl = '';
         } else if (docType === 'contract') {
-          target.contractStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          target.contractStatus = decision === 'เรียบร้อย' ? 'เรียบร้อย' : '';
           if (decision === 'ไม่ผ่าน') target.contractPdfUrl = '';
         } else if (docType === 'trans') {
-          target.transcriptStatus = decision === 'ผ่าน' ? 'ผ่าน' : '';
+          target.transcriptStatus = decision === 'เรียบร้อย' ? 'เรียบร้อย' : '';
           if (decision === 'ไม่ผ่าน') target.transcriptFileUrl = '';
         }
       }
 
       Swal.fire({
-        icon: decision === 'ผ่าน' ? 'success' : 'warning',
-        title: decision === 'ผ่าน' ? 'บันทึกสถานะ "เรียบร้อย (ผ่าน)" แล้ว' : 'บันทึก "ไม่ผ่าน" และล้างข้อมูลเรียบร้อย',
+        icon: decision === 'เรียบร้อย' ? 'success' : 'warning',
+        title: decision === 'เรียบร้อย' ? 'บันทึกสถานะ "เรียบร้อย" ลงใน Sheet แล้ว' : 'บันทึก "ไม่ผ่าน" และล้างข้อมูลเรียบร้อย',
         text: decision === 'ไม่ผ่าน' ? 'ล้างช่องสถานะและลิงก์ใน Google Sheet แล้ว เพื่อให้นักศึกษากรอกใหม่' : '',
         timer: 1800,
         showConfirmButton: false
@@ -412,9 +434,17 @@ async function adminSetStatus(row, docType, decision) {
 
       renderAdminDashboard();
     } else {
+      if (selectEl) {
+        selectEl.value = 'รอตรวจสอบ';
+        selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm";
+      }
       Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: res.message });
     }
   } catch (err) {
+    if (selectEl) {
+      selectEl.value = 'รอตรวจสอบ';
+      selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm";
+    }
     Swal.fire({ icon: 'error', title: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ', text: err.message });
   }
 }
