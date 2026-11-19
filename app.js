@@ -1,5 +1,5 @@
 // *** ใส่ URL Web App ของคุณตรงนี้ ***
-const API_URL = "วาง_URL_WEB_APP_ของคุณที่นี่";
+const API_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
 const ADMIN_ID = "1032355109000";
 
 let currentStudent = null;
