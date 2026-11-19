@@ -343,9 +343,10 @@ function switchAdminTab(tab) {
 
 function renderAdminTable() {
   const tbody = document.getElementById('adminTableBody');
+  const cardList = document.getElementById('adminCardList');
   tbody.innerHTML = '';
+  cardList.innerHTML = '';
 
-  // กรองเฉพาะแถวที่มีลิงก์ไฟล์จริง (ไม่ใช่ช่องว่าง) และสถานะเป็น "รอตรวจสอบ"
   const filtered = adminStudentsList.filter(s => {
     if (currentAdminTab === 'pdpa') return s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ";
     if (currentAdminTab === 'contract') return s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ";
@@ -355,11 +356,14 @@ function renderAdminTable() {
 
   if (filtered.length === 0) {
     tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 italic">ไม่มีเอกสารที่อยู่ในสถานะรอตรวจสอบ</td></tr>`;
+    cardList.innerHTML = `<div class="p-6 text-center text-gray-400 italic bg-gray-50 rounded-2xl border text-sm">ไม่มีเอกสารที่อยู่ในสถานะรอตรวจสอบ</div>`;
     return;
   }
 
   filtered.forEach(s => {
     const fileUrl = currentAdminTab === 'pdpa' ? s.pdpaPdfUrl : (currentAdminTab === 'contract' ? s.contractPdfUrl : s.transcriptFileUrl);
+
+    // 1. แถวสำหรับตาราง (จอใหญ่)
     tbody.innerHTML += `
       <tr class="hover:bg-gray-50 border-b">
         <td class="p-4 font-mono font-bold">${s.studentId}</td>
@@ -376,6 +380,30 @@ function renderAdminTable() {
           </select>
         </td>
       </tr>
+    `;
+
+    // 2. Card สำหรับมือถือ (จอเล็ก)
+    cardList.innerHTML += `
+      <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
+        <div class="flex justify-between items-start gap-2 border-b pb-2.5">
+          <div>
+            <span class="text-xs font-mono font-bold text-theme-green bg-emerald-50 px-2.5 py-0.5 rounded-md">${s.studentId}</span>
+            <h3 class="text-base font-bold text-gray-800 mt-1">${s.name}</h3>
+            <p class="text-xs text-gray-500 mt-0.5">${s.course || '-'}</p>
+          </div>
+          <a href="${fileUrl}" target="_blank" class="shrink-0 px-3 py-2 bg-blue-100 text-blue-800 rounded-xl text-xs font-bold hover:bg-blue-200 transition flex items-center gap-1">
+            <i class="fa-solid fa-eye"></i> ดูเอกสาร
+          </a>
+        </div>
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <span class="text-xs font-bold text-gray-600">พิจารณาผล:</span>
+          <select onchange="handleAdminSelectChange(this, ${s.row}, '${currentAdminTab}')" class="flex-1 max-w-[200px] px-3 py-2 rounded-xl text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm">
+            <option value="รอตรวจสอบ" selected class="bg-white text-gray-800">⏳ รอตรวจสอบ</option>
+            <option value="เรียบร้อย" class="bg-white text-green-700 font-bold">✅ เรียบร้อย</option>
+            <option value="ไม่ผ่าน" class="bg-white text-red-600 font-bold">❌ ไม่ผ่าน (ล้างข้อมูล)</option>
+          </select>
+        </div>
+      </div>
     `;
   });
 }
