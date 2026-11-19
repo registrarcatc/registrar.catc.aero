@@ -117,7 +117,7 @@ function renderStudentUI() {
     document.getElementById('transViewArea').classList.add('hidden');
   }
 
-  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อสถานะเป็น "เรียบร้อย" ครบทั้ง 3 รายการ)
+  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปลี่ยนเป็นสีส้มเมื่อสถานะเป็น "เรียบร้อย" ครบทั้ง 3 รายการ)
   const isAllPassed = (
     currentStudent.pdpaStatus === 'เรียบร้อย' &&
     currentStudent.contractStatus === 'เรียบร้อย' &&
@@ -125,7 +125,7 @@ function renderStudentUI() {
   );
   const eduBtn = document.getElementById('eduSystemBtn');
   if (isAllPassed) {
-    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90 cursor-pointer";
+    eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-orange cursor-pointer";
   } else {
     eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray cursor-not-allowed";
   }
