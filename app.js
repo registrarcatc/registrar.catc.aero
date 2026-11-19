@@ -133,13 +133,15 @@ function renderStudentUI() {
 
 function setBadge(id, title, status) {
   const el = document.getElementById(id);
-  const displayStatus = status ? status : 'รอดำเนินการ';
-  el.innerText = `${title}: ${displayStatus}`;
+
   if (status === 'เรียบร้อย') {
+    el.innerHTML = `${title}: ✅`;
     el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
   } else if (status === 'รอตรวจสอบ') {
+    el.innerHTML = `${title}: <i class="fa-solid fa-clock mr-1"></i>รอตรวจสอบ`;
     el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
   } else {
+    el.innerHTML = `${title}: <i class="fa-solid fa-hourglass-half mr-1"></i>รอดำเนินการ`;
     el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-gray";
   }
 }
