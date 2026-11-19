@@ -161,9 +161,12 @@ function handleEduSystemClick() {
     return;
   }
 
+  const cleanIdCard = String(currentStudent.idCard || '').trim();
+  const last5Digits = cleanIdCard.length >= 5 ? cleanIdCard.slice(-5) : cleanIdCard;
+
   const eduUrl = currentStudent.eduUrl || 'https://reg.catc.or.th';
   const username = currentStudent.eduUsername || currentStudent.username || currentStudent.studentId || '-';
-  const password = currentStudent.eduPassword || currentStudent.password || currentStudent.idCard || '-';
+  const password = last5Digits || '-';
 
   document.getElementById('eduUrlText').innerText = eduUrl;
   document.getElementById('eduUrlText').href = eduUrl;
