@@ -45,7 +45,7 @@ async function search() {
     return;
   }
 
-  // กรณีที่ 2: กรอกเลขบัตรประชาชนนักศึกษา (ใช้ action: 'searchStudent' เดิม)
+  // กรณีที่ 2: กรอกเลขบัตรประชาชนนักศึกษา
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
@@ -71,7 +71,7 @@ async function search() {
 }
 
 // ==========================================
-// 2. ระบบแสดงผลและการส่งข้อมูลฝั่งนักศึกษา (ตามโครงสร้างเดิม)
+// 2. ระบบแสดงผลและการส่งข้อมูลฝั่งนักศึกษา
 // ==========================================
 function renderStudentUI() {
   document.getElementById('resName').innerText = currentStudent.name;
@@ -117,8 +117,12 @@ function renderStudentUI() {
     document.getElementById('transViewArea').classList.add('hidden');
   }
 
-  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อสถานะเป็น "เรียบร้อย" ทั้ง 3 รายการ)
-  const isAllPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transcriptStatus === 'เรียบร้อย');
+  // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปิดเมื่อสถานะเป็น "เรียบร้อย" ครบทั้ง 3 รายการ)
+  const isAllPassed = (
+    currentStudent.pdpaStatus === 'เรียบร้อย' &&
+    currentStudent.contractStatus === 'เรียบร้อย' &&
+    currentStudent.transcriptStatus === 'เรียบร้อย'
+  );
   const eduBtn = document.getElementById('eduSystemBtn');
   if (isAllPassed) {
     eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-green hover:opacity-90 cursor-pointer";
@@ -142,15 +146,53 @@ function setBadge(id, title, status) {
 
 function handleEduSystemClick() {
   if (!currentStudent) return;
-  const isAllPassed = (currentStudent.pdpaStatus === 'เรียบร้อย' && currentStudent.contractStatus === 'เรียบร้อย' && currentStudent.transcriptStatus === 'เรียบร้อย');
+  const isAllPassed = (
+    currentStudent.pdpaStatus === 'เรียบร้อย' &&
+    currentStudent.contractStatus === 'เรียบร้อย' &&
+    currentStudent.transcriptStatus === 'เรียบร้อย'
+  );
+
   if (!isAllPassed) {
-    Swal.fire({ icon: 'warning', title: 'ยังไม่สามารถเข้าสู่ระบบได้', text: 'เอกสารทั้ง 3 รายการต้องได้รับการตรวจสอบและมีสถานะ "เรียบร้อย" ครบทั้งหมดก่อน' });
+    Swal.fire({
+      icon: 'warning',
+      title: 'ยังไม่สามารถเข้าสู่ระบบได้',
+      text: 'เอกสารทั้ง 3 รายการต้องได้รับการตรวจสอบและมีสถานะ "เรียบร้อย" ครบทั้งหมดก่อน'
+    });
     return;
   }
-  window.open('https://reg.catc.or.th', '_blank');
+
+  const eduUrl = currentStudent.eduUrl || 'https://reg.catc.or.th';
+  const username = currentStudent.eduUsername || currentStudent.username || currentStudent.studentId || '-';
+  const password = currentStudent.eduPassword || currentStudent.password || currentStudent.idCard || '-';
+
+  document.getElementById('eduUrlText').innerText = eduUrl;
+  document.getElementById('eduUrlText').href = eduUrl;
+  document.getElementById('eduGoLink').href = eduUrl;
+  document.getElementById('eduUsernameText').innerText = username;
+  document.getElementById('eduPasswordText').innerText = password;
+
+  document.getElementById('eduModal').style.display = 'block';
 }
 
-// บันทึก PDPA (ส่งเข้า action: 'savePdpa' เดิม)
+function closeEduModal() {
+  document.getElementById('eduModal').style.display = 'none';
+}
+
+function copyEduValue(elementId) {
+  const text = document.getElementById(elementId).innerText;
+  if (!text || text === '-') return;
+  navigator.clipboard.writeText(text).then(() => {
+    Swal.fire({
+      icon: 'success',
+      title: 'คัดลอกแล้ว',
+      text: text,
+      timer: 1000,
+      showConfirmButton: false
+    });
+  });
+}
+
+// บันทึก PDPA
 async function submitPdpa() {
   const writtenAt = document.getElementById('writtenAt').value.trim();
   const date = document.getElementById('dateInput').value;
@@ -200,7 +242,7 @@ async function submitPdpa() {
   }
 }
 
-// บันทึก Contract (ส่งเข้า action: 'saveContract' เดิม)
+// บันทึก Contract
 async function submitContract() {
   const contractDate = document.getElementById('contractDate').value;
   const birthDate = document.getElementById('birthDate').value;
@@ -267,7 +309,7 @@ async function submitContract() {
   }
 }
 
-// อัปโหลด Transcript (ส่งเข้า action: 'uploadTranscript' เดิม)
+// อัปโหลด Transcript
 async function uploadFile() {
   const fileInput = document.getElementById('fileIn');
   if (fileInput.files.length === 0) {
@@ -348,9 +390,15 @@ function renderAdminDashboard() {
 
 function switchAdminTab(tab) {
   currentAdminTab = tab;
-  document.getElementById('adminTabPdpa').className = tab === 'pdpa' ? "flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50" : "flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
-  document.getElementById('adminTabContract').className = tab === 'contract' ? "flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50" : "flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
-  document.getElementById('adminTabTrans').className = tab === 'trans' ? "flex-1 py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50" : "flex-1 py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  document.getElementById('adminTabPdpa').className = tab === 'pdpa'
+    ? "flex-1 py-2.5 px-1 md:py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50"
+    : "flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  document.getElementById('adminTabContract').className = tab === 'contract'
+    ? "flex-1 py-2.5 px-1 md:py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50"
+    : "flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
+  document.getElementById('adminTabTrans').className = tab === 'trans'
+    ? "flex-1 py-2.5 px-1 md:py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50"
+    : "flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
   renderAdminTable();
 }
 
@@ -427,20 +475,7 @@ function renderAdminTable() {
   });
 }
 
-function handleAdminSelectChange(selectEl, row, docType) {
-  const decision = selectEl.value;
-  if (decision === 'รอตรวจสอบ') return;
-
-  if (decision === 'เรียบร้อย') {
-    selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-green-600 outline-none cursor-pointer shadow-sm";
-  } else if (decision === 'ไม่ผ่าน') {
-    selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-red-600 outline-none cursor-pointer shadow-sm";
-  }
-
-  adminSetStatus(row, docType, decision, selectEl);
-}
-
-async function adminSetStatus(row, docType, decision, selectEl) {
+async function adminSetStatus(row, docType, decision) {
   Swal.fire({ title: 'กำลังอัปเดตสถานะใน Google Sheet...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
   try {
@@ -481,17 +516,9 @@ async function adminSetStatus(row, docType, decision, selectEl) {
 
       renderAdminDashboard();
     } else {
-      if (selectEl) {
-        selectEl.value = 'รอตรวจสอบ';
-        selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm";
-      }
       Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: res.message });
     }
   } catch (err) {
-    if (selectEl) {
-      selectEl.value = 'รอตรวจสอบ';
-      selectEl.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-yellow-500 outline-none cursor-pointer shadow-sm";
-    }
     Swal.fire({ icon: 'error', title: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ', text: err.message });
   }
 }
@@ -550,6 +577,10 @@ function saveModalSig() {
   const previewId = currentSigField === 'user' ? 'userPreview' : (currentSigField === 'studentSig' ? 'studentSigPreview' : 'parentSigPreview');
   document.getElementById(previewId).innerHTML = `<img src="${dataUrl}" alt="signature">`;
   closeModal();
+}
+
+function closeDocViewer() {
+  document.getElementById('docViewerModal').style.display = 'none';
 }
 
 // โหลดข้อมูลจังหวัด/อำเภอ/ตำบล ของประเทศไทย
