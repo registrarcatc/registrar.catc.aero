@@ -83,7 +83,7 @@
         <!-- Tab 3 เอกสาร ฝั่งนักศึกษา (User) พร้อมไอคอน -->
         <div class="flex border-b border-gray-200 text-xs md:text-base font-bold">
           <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50">
-            <i class="fa-solid fa-shield-halved mr-1"></i> 1. PDPA
+            <i class="fa-solid fa-shield-alt mr-1"></i> 1. PDPA
           </button>
           <button onclick="switchTab('contract')" id="tabContractBtn" class="flex-1 py-3 px-1 md:py-4 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">
             <i class="fa-solid fa-file-signature mr-1"></i> 2. สัญญาการศึกษา
@@ -96,7 +96,7 @@
         <!-- 1. ส่วน PDPA -->
         <div id="pdpaSection" class="space-y-6 tab-content">
           <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">
-            <i class="fa-solid fa-shield-halved mr-2"></i> 1. แบบฟอร์มแสดงความยินยอม (PDPA)
+            <i class="fa-solid fa-shield-alt mr-2"></i> 1. แบบฟอร์มแสดงความยินยอม (PDPA)
           </h2>
           <div id="pdpaForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
@@ -300,7 +300,7 @@
           </div>
           <div class="grid grid-cols-3 gap-2 md:gap-4">
             <div class="bg-white border border-yellow-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-yellow-800"><i class="fa-solid fa-shield-halved text-yellow-600 mr-1"></i> PDPA</p>
+              <p class="text-xs md:text-sm font-bold text-yellow-800"><i class="fa-solid fa-shield-alt text-yellow-600 mr-1"></i> PDPA</p>
               <p id="countPdpa" class="text-2xl md:text-3xl font-bold text-yellow-700 mt-1">0</p>
             </div>
             <div class="bg-white border border-yellow-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
@@ -317,7 +317,7 @@
         <!-- 3 Tab ตัวเลือกสำหรับ Admin ตรวจเอกสาร พร้อมไอคอน -->
         <div class="flex border-b border-gray-200 text-xs md:text-base font-bold">
           <button onclick="switchAdminTab('pdpa')" id="adminTabPdpa" class="flex-1 py-2.5 px-1 md:py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50">
-            <i class="fa-solid fa-shield-halved mr-1"></i> 1. PDPA
+            <i class="fa-solid fa-shield-alt mr-1"></i> 1. PDPA
           </button>
           <button onclick="switchAdminTab('contract')" id="adminTabContract" class="flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">
             <i class="fa-solid fa-file-signature mr-1"></i> 2. สัญญา
@@ -365,6 +365,54 @@
         <button onclick="saveModalSig()" class="flex-1 py-3 bg-theme-green text-white rounded-xl font-bold text-sm">ตกลง</button>
       </div>
       <button onclick="closeModal()" class="mt-3 text-xs md:text-sm text-gray-400">ปิดหน้าต่าง</button>
+    </div>
+  </div>
+
+  <!-- Modal แสดงข้อมูลเข้าสู่ระบบบริหารการศึกษา -->
+  <div id="eduModal" class="modal">
+    <div class="modal-content max-w-md text-left">
+      <div class="flex justify-between items-center pb-3 border-b">
+        <h3 class="font-bold text-lg text-theme-green">
+          <i class="fa-solid fa-graduation-cap mr-2"></i> ข้อมูลระบบบริหารการศึกษา
+        </h3>
+        <button onclick="closeEduModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2">&times;</button>
+      </div>
+
+      <div class="space-y-3 my-4 text-sm">
+        <div class="bg-gray-50 p-3 rounded-xl border">
+          <span class="text-xs font-bold text-gray-500 block">เว็บไซต์ (Website)</span>
+          <div class="flex items-center justify-between gap-2 mt-1">
+            <a id="eduUrlText" href="https://reg.catc.or.th" target="_blank" class="font-mono font-bold text-blue-700 underline break-all">https://reg.catc.or.th</a>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 p-3 rounded-xl border">
+          <span class="text-xs font-bold text-gray-500 block">ชื่อผู้ใช้งาน (Username)</span>
+          <div class="flex items-center justify-between gap-2 mt-1">
+            <span id="eduUsernameText" class="font-mono font-bold text-gray-800">-</span>
+            <button type="button" onclick="copyEduValue('eduUsernameText')" class="px-2.5 py-1 bg-emerald-100 text-theme-green rounded-lg text-xs font-bold hover:bg-emerald-200 transition">
+              <i class="fa-regular fa-copy mr-1"></i> คัดลอก
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-gray-50 p-3 rounded-xl border">
+          <span class="text-xs font-bold text-gray-500 block">รหัสผ่าน (Password)</span>
+          <div class="flex items-center justify-between gap-2 mt-1">
+            <span id="eduPasswordText" class="font-mono font-bold text-gray-800">-</span>
+            <button type="button" onclick="copyEduValue('eduPasswordText')" class="px-2.5 py-1 bg-emerald-100 text-theme-green rounded-lg text-xs font-bold hover:bg-emerald-200 transition">
+              <i class="fa-regular fa-copy mr-1"></i> คัดลอก
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="closeEduModal()" class="flex-1 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-300 transition">ปิด</button>
+        <a id="eduGoLink" href="https://reg.catc.or.th" target="_blank" class="flex-1 py-2.5 bg-theme-green text-white rounded-xl font-bold text-sm text-center shadow hover:opacity-90 transition">
+          เข้าสู่ระบบ <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+        </a>
+      </div>
     </div>
   </div>
 
