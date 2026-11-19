@@ -321,7 +321,20 @@ function logoutAdmin() {
 }
 
 function renderAdminDashboard() {
-  // นับเฉพาะช่องที่มีลิงก์หลักฐานจริง (ไม่เป็นค่าว่าง) และมีสถานะ "รอตรวจสอบ"
+  // 1. คำนวณ Dashboard ภาพรวมด้านบน
+  const totalCount = adminStudentsList.length;
+  const completedCount = adminStudentsList.filter(s =>
+    s.pdpaStatus === "เรียบร้อย" &&
+    s.contractStatus === "เรียบร้อย" &&
+    s.transcriptStatus === "เรียบร้อย"
+  ).length;
+  const pendingCount = totalCount - completedCount;
+
+  document.getElementById('dashTotal').innerText = totalCount;
+  document.getElementById('dashCompleted').innerText = completedCount;
+  document.getElementById('dashPending').innerText = pendingCount;
+
+  // 2. นับเฉพาะช่องที่มีลิงก์หลักฐานจริง (ไม่เป็นค่าว่าง) และมีสถานะ "รอตรวจสอบ"
   const countPdpa = adminStudentsList.filter(s => s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ").length;
   const countContract = adminStudentsList.filter(s => s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ").length;
   const countTrans = adminStudentsList.filter(s => s.transcriptFileUrl !== "" && s.transcriptStatus === "รอตรวจสอบ").length;
