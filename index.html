@@ -80,15 +80,24 @@
           </div>
         </div>
 
-        <div class="flex border-b border-gray-200 text-xs md:text-base">
-          <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50">1. PDPA</button>
-          <button onclick="switchTab('contract')" id="tabContractBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">2. สัญญาการศึกษา</button>
-          <button onclick="switchTab('trans')" id="tabTransBtn" class="flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">3. อัปโหลด Transcript</button>
+        <!-- Tab 3 เอกสาร ฝั่งนักศึกษา (User) พร้อมไอคอน -->
+        <div class="flex border-b border-gray-200 text-xs md:text-base font-bold">
+          <button onclick="switchTab('pdpa')" id="tabPdpaBtn" class="flex-1 py-3 px-1 md:py-4 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50">
+            <i class="fa-solid fa-shield-halved mr-1"></i> 1. PDPA
+          </button>
+          <button onclick="switchTab('contract')" id="tabContractBtn" class="flex-1 py-3 px-1 md:py-4 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">
+            <i class="fa-solid fa-file-signature mr-1"></i> 2. สัญญาการศึกษา
+          </button>
+          <button onclick="switchTab('trans')" id="tabTransBtn" class="flex-1 py-3 px-1 md:py-4 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">
+            <i class="fa-solid fa-file-arrow-up mr-1"></i> 3. อัปโหลด Transcript
+          </button>
         </div>
 
         <!-- 1. ส่วน PDPA -->
         <div id="pdpaSection" class="space-y-6 tab-content">
-          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">1. แบบฟอร์มแสดงความยินยอม (PDPA)</h2>
+          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">
+            <i class="fa-solid fa-shield-halved mr-2"></i> 1. แบบฟอร์มแสดงความยินยอม (PDPA)
+          </h2>
           <div id="pdpaForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
               <div><label class="text-sm font-bold text-gray-600 mb-1 block">เขียนที่</label><input type="text" id="writtenAt" value="สถาบันการบินพลเรือน" class="w-full p-3 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm md:text-base"></div>
@@ -131,7 +140,9 @@
 
         <!-- 2. ส่วน Contract -->
         <div id="contractSection" class="space-y-6 tab-content hidden">
-          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">2. สัญญาการศึกษา (Contract)</h2>
+          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">
+            <i class="fa-solid fa-file-signature mr-2"></i> 2. สัญญาการศึกษา (Contract)
+          </h2>
           <div id="contractForm" class="space-y-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 p-4 md:p-6 rounded-2xl">
               <div>
@@ -230,7 +241,9 @@
 
         <!-- 3. ส่วน Transcript -->
         <div id="transSection" class="space-y-6 tab-content hidden">
-          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">3. อัปโหลดเอกสาร (Transcript)</h2>
+          <h2 class="text-lg md:text-xl font-bold text-theme-green border-l-8 border-theme-green pl-4">
+            <i class="fa-solid fa-file-arrow-up mr-2"></i> 3. อัปโหลดเอกสาร (Transcript)
+          </h2>
           <div id="uploadZone" class="p-6 md:p-10 border-4 border-dashed rounded-3xl bg-gray-50 text-center">
             <input type="file" id="fileIn" accept=".pdf" class="hidden" onchange="document.getElementById('fileName').innerText='ไฟล์ที่เลือก: ' + this.files[0].name">
             <div class="cursor-pointer" onclick="document.getElementById('fileIn').click()">
@@ -255,7 +268,7 @@
           <button onclick="logoutAdmin()" class="w-full sm:w-auto px-4 py-2 bg-red-600 text-white rounded-xl font-bold text-xs md:text-sm shadow hover:bg-red-700 transition">ออกจากระบบ Admin</button>
         </div>
 
-        <!-- สรุปภาพรวมนักศึกษา (วางด้านบนส่วน รอตรวจ) -->
+        <!-- สรุปภาพรวมนักศึกษา (วางด้านบนส่วน รอตรวจ) พร้อมไอคอน -->
         <div class="bg-emerald-50/70 border border-emerald-200 p-3.5 md:p-5 rounded-2xl space-y-3">
           <div class="text-center">
             <span class="inline-block bg-theme-green text-white text-xs md:text-sm font-bold px-4 py-1 rounded-full shadow-sm">
@@ -264,21 +277,21 @@
           </div>
           <div class="grid grid-cols-3 gap-2 md:gap-4">
             <div class="bg-white border border-gray-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-gray-700">ทั้งหมด</p>
+              <p class="text-xs md:text-sm font-bold text-gray-700"><i class="fa-solid fa-users text-gray-500 mr-1"></i> ทั้งหมด</p>
               <p id="dashTotal" class="text-2xl md:text-3xl font-bold text-gray-900 mt-1">0</p>
             </div>
             <div class="bg-white border border-green-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-green-700">เรียบร้อย</p>
+              <p class="text-xs md:text-sm font-bold text-green-700"><i class="fa-solid fa-circle-check text-green-600 mr-1"></i> เรียบร้อย</p>
               <p id="dashCompleted" class="text-2xl md:text-3xl font-bold text-green-600 mt-1">0</p>
             </div>
             <div class="bg-white border border-amber-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-amber-700">รอดำเนินการ</p>
+              <p class="text-xs md:text-sm font-bold text-amber-700"><i class="fa-solid fa-hourglass-half text-amber-500 mr-1"></i> รอดำเนินการ</p>
               <p id="dashPending" class="text-2xl md:text-3xl font-bold text-amber-600 mt-1">0</p>
             </div>
           </div>
         </div>
 
-        <!-- หัวข้อหลัก "รอตรวจ" และสรุปจำนวนของทั้ง 3 เอกสาร (ไม่ซ้ำคำว่า รอตรวจ) -->
+        <!-- หัวข้อหลัก "รอตรวจ" และสรุปจำนวนของทั้ง 3 เอกสาร พร้อมไอคอน -->
         <div class="bg-yellow-50/70 border border-yellow-200 p-3.5 md:p-5 rounded-2xl space-y-3">
           <div class="text-center">
             <span class="inline-block bg-yellow-400 text-yellow-950 text-xs md:text-sm font-bold px-4 py-1 rounded-full shadow-sm">
@@ -287,25 +300,31 @@
           </div>
           <div class="grid grid-cols-3 gap-2 md:gap-4">
             <div class="bg-white border border-yellow-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-yellow-800">PDPA</p>
+              <p class="text-xs md:text-sm font-bold text-yellow-800"><i class="fa-solid fa-shield-halved text-yellow-600 mr-1"></i> PDPA</p>
               <p id="countPdpa" class="text-2xl md:text-3xl font-bold text-yellow-700 mt-1">0</p>
             </div>
             <div class="bg-white border border-yellow-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-yellow-800">สัญญามอบตัว</p>
+              <p class="text-xs md:text-sm font-bold text-yellow-800"><i class="fa-solid fa-file-signature text-yellow-600 mr-1"></i> สัญญามอบตัว</p>
               <p id="countContract" class="text-2xl md:text-3xl font-bold text-yellow-700 mt-1">0</p>
             </div>
             <div class="bg-white border border-yellow-200 p-2.5 md:p-4 rounded-xl text-center shadow-sm">
-              <p class="text-xs md:text-sm font-bold text-yellow-800">TRANSCRIPT</p>
+              <p class="text-xs md:text-sm font-bold text-yellow-800"><i class="fa-solid fa-file-lines text-yellow-600 mr-1"></i> TRANSCRIPT</p>
               <p id="countTrans" class="text-2xl md:text-3xl font-bold text-yellow-700 mt-1">0</p>
             </div>
           </div>
         </div>
 
-        <!-- 3 Tab ตัวเลือกสำหรับ Admin ตรวจเอกสาร -->
+        <!-- 3 Tab ตัวเลือกสำหรับ Admin ตรวจเอกสาร พร้อมไอคอน -->
         <div class="flex border-b border-gray-200 text-xs md:text-base font-bold">
-          <button onclick="switchAdminTab('pdpa')" id="adminTabPdpa" class="flex-1 py-2.5 px-1 md:py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50">1. PDPA</button>
-          <button onclick="switchAdminTab('contract')" id="adminTabContract" class="flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">2. สัญญา</button>
-          <button onclick="switchAdminTab('trans')" id="adminTabTrans" class="flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">3. Transcript</button>
+          <button onclick="switchAdminTab('pdpa')" id="adminTabPdpa" class="flex-1 py-2.5 px-1 md:py-3 text-center text-theme-green border-b-4 border-theme-green transition bg-emerald-50">
+            <i class="fa-solid fa-shield-halved mr-1"></i> 1. PDPA
+          </button>
+          <button onclick="switchAdminTab('contract')" id="adminTabContract" class="flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">
+            <i class="fa-solid fa-file-signature mr-1"></i> 2. สัญญา
+          </button>
+          <button onclick="switchAdminTab('trans')" id="adminTabTrans" class="flex-1 py-2.5 px-1 md:py-3 text-center text-gray-400 border-b-4 border-transparent transition hover:text-theme-green">
+            <i class="fa-solid fa-file-lines mr-1"></i> 3. Transcript
+          </button>
         </div>
 
         <!-- มุมมองแบบ Card สำหรับมือถือ -->
