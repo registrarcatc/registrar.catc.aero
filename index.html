@@ -66,6 +66,17 @@
             <div><span class="text-xs font-bold text-[#128F8B] uppercase">รหัสนักศึกษา</span><p id="resId" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
             <div class="md:col-span-2"><span class="text-xs font-bold text-[#128F8B] uppercase">หลักสูตร</span><p id="resCourse" class="text-base md:text-lg font-bold text-gray-800">-</p></div>
           </div>
+
+          <!-- แถบบาร์แสดง % ความสำเร็จของการดำเนินการเอกสารทั้ง 3 รายการ (แสดงก่อนปุ่มสถานะ) -->
+          <div class="pt-3 border-t border-emerald-200 space-y-1.5">
+            <div class="flex justify-between items-center text-xs md:text-sm font-bold text-theme-green">
+              <span><i class="fa-solid fa-chart-line mr-1"></i> ความสำเร็จในการดำเนินการเอกสาร (3 รายการ)</span>
+              <span id="docCompletionText" class="font-mono bg-white px-2.5 py-0.5 rounded-lg border border-emerald-200">0/3 (0%)</span>
+            </div>
+            <div class="w-full h-3.5 bg-white rounded-full overflow-hidden border border-emerald-200 shadow-inner">
+              <div id="docCompletionBar" class="h-full status-green transition-all duration-300" style="width: 0%;"></div>
+            </div>
+          </div>
           
           <div class="pt-3 border-t border-emerald-200 grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
             <span id="pdpaBadge" class="px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm">PDPA</span>
