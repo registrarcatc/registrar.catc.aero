@@ -1,6 +1,22 @@
 // *** URL Web App ของ Google Apps Script ***
 const API_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
 const ADMIN_ID = "1032355109000";
+const THAI_ADDRESS_CACHE_KEY = "CATC_THAI_ADDRESS_V1";
+
+const ALL_77_PROVINCES = [
+  "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น",
+  "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร", "เชียงราย",
+  "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา",
+  "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์",
+  "ปทุมธานี", "ประจวบคีรีขันธ์", "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา",
+  "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์", "แพร่", "ภูเก็ต",
+  "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง",
+  "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร",
+  "สงขลา", "สตูล", "สมุทรปราการ", "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี",
+  "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย",
+  "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี",
+  "อุบลราชธานี"
+];
 
 let currentStudent = null;
 let adminStudentsList = [];
@@ -137,8 +153,6 @@ function openProgressModal(titleText, labelText, percent = 10) {
   const modal = document.getElementById('progressModal');
   const titleEl = document.getElementById('progressModalTitle');
   const labelEl = document.getElementById('progressModalLabel');
-  const pctEl = document.getElementById('progressModalPercent');
-  const barEl = document.getElementById('progressModalBar');
   if (!modal) return;
 
   if (titleText) titleEl.innerText = titleText;
@@ -611,7 +625,7 @@ async function adminSetStatus(row, docType, decision) {
 }
 
 // ==========================================
-// 4. ระบบ UI, Tab, ลายมือชื่อ และข้อมูลที่อยู่ประเทศไทย
+// 4. ระบบ UI, Tab, ลายมือชื่อ และข้อมูลที่อยู่ประเทศไทย (ดึงจาก API ภายนอก)
 // ==========================================
 function switchTab(tab) {
   ['pdpaSection', 'contractSection', 'transSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
@@ -670,91 +684,128 @@ function closeDocViewer() {
   document.getElementById('docViewerModal').style.display = 'none';
 }
 
-// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล และรหัสไปรษณีย์อัตโนมัติ
-function getFallbackThaiProvinces77() {
-  const all77Names = [
-    "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น",
-    "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร", "เชียงราย",
-    "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม", "นครราชสีมา",
-    "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์",
-    "ปทุมธานี", "ประจวบคีรีขันธ์", "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา",
-    "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์", "แพร่", "ภูเก็ต",
-    "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง",
-    "ระยอง", "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร",
-    "สงขลา", "สตูล", "สมุทรปราการ", "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี",
-    "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย",
-    "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี",
-    "อุบลราชธานี"
-  ];
-
-  const detailedPreset = {
-    "กรุงเทพมหานคร": {
-      amphure: [
-        { name_th: "เขตจตุจักร", zip_code: "10900", tambon: [{ name_th: "จตุจักร", zip_code: "10900" }, { name_th: "ลาดยาว", zip_code: "10900" }, { name_th: "เสนานิคม", zip_code: "10900" }] },
-        { name_th: "เขตดอนเมือง", zip_code: "10210", tambon: [{ name_th: "สีกัน", zip_code: "10210" }, { name_th: "ดอนเมือง", zip_code: "10210" }] },
-        { name_th: "เขตพญาไท", zip_code: "10400", tambon: [{ name_th: "สามเสนใน", zip_code: "10400" }] },
-        { name_th: "เขตปทุมวัน", zip_code: "10330", tambon: [{ name_th: "ลุมพินี", zip_code: "10330" }, { name_th: "ปทุมวัน", zip_code: "10330" }] }
-      ]
-    },
-    "ประจวบคีรีขันธ์": {
-      amphure: [
-        { name_th: "อำเภอหัวหิน", zip_code: "77110", tambon: [{ name_th: "หัวหิน", zip_code: "77110" }, { name_th: "หนองแก", zip_code: "77110" }] },
-        { name_th: "อำเภอเมืองประจวบคีรีขันธ์", zip_code: "77000", tambon: [{ name_th: "ประจวบคีรีขันธ์", zip_code: "77000" }, { name_th: "คลองวาฬ", zip_code: "77210" }] },
-        { name_th: "อำเภอปราณบุรี", zip_code: "77120", tambon: [{ name_th: "ปราณบุรี", zip_code: "77120" }, { name_th: "ปากน้ำปราณ", zip_code: "77220" }] }
-      ]
-    },
-    "นนทบุรี": {
-      amphure: [
-        { name_th: "อำเภอเมืองนนทบุรี", zip_code: "11000", tambon: [{ name_th: "ตลาดขวัญ", zip_code: "11000" }, { name_th: "บางกระสอ", zip_code: "11000" }, { name_th: "ท่าทราย", zip_code: "11000" }] },
-        { name_th: "อำเภอปากเกร็ด", zip_code: "11120", tambon: [{ name_th: "ปากเกร็ด", zip_code: "11120" }, { name_th: "บางพูด", zip_code: "11120" }] }
-      ]
-    },
-    "ปทุมธานี": {
-      amphure: [
-        { name_th: "อำเภอเมืองปทุมธานี", zip_code: "12000", tambon: [{ name_th: "บางปรอก", zip_code: "12000" }, { name_th: "บ้านใหม่", zip_code: "12000" }] },
-        { name_th: "อำเภอคลองหลวง", zip_code: "12120", tambon: [{ name_th: "คลองหนึ่ง", zip_code: "12120" }, { name_th: "คลองสอง", zip_code: "12120" }] }
-      ]
-    },
-    "สมุทรปราการ": {
-      amphure: [
-        { name_th: "อำเภอเมืองสมุทรปราการ", zip_code: "10270", tambon: [{ name_th: "ปากน้ำ", zip_code: "10270" }, { name_th: "สำโรงเหนือ", zip_code: "10270" }] },
-        { name_th: "อำเภอบางพลี", zip_code: "10540", tambon: [{ name_th: "บางพลีใหญ่", zip_code: "10540" }, { name_th: "บางแก้ว", zip_code: "10540" }] }
-      ]
-    },
-    "เชียงใหม่": {
-      amphure: [
-        { name_th: "อำเภอเมืองเชียงใหม่", zip_code: "50200", tambon: [{ name_th: "ศรีภูมิ", zip_code: "50200" }, { name_th: "สุเทพ", zip_code: "50200" }, { name_th: "ช้างเผือก", zip_code: "50300" }] }
-      ]
-    },
-    "ชลบุรี": {
-      amphure: [
-        { name_th: "อำเภอเมืองชลบุรี", zip_code: "20000", tambon: [{ name_th: "บางปลาสร้อย", zip_code: "20000" }, { name_th: "เสม็ด", zip_code: "20000" }] },
-        { name_th: "อำเภอบางละมุง", zip_code: "20150", tambon: [{ name_th: "หนองปรือ", zip_code: "20150" }, { name_th: "นาเกลือ", zip_code: "20150" }] }
-      ]
-    }
-  };
-
-  return all77Names
-    .map(name => {
-      if (detailedPreset[name]) {
-        return { name_th: name, amphure: detailedPreset[name].amphure };
-      }
-      return {
-        name_th: name,
-        amphure: [
-          {
-            name_th: `อำเภอเมือง${name.replace(/^จังหวัด/, '')}`,
-            zip_code: "",
-            tambon: [{ name_th: "ในเมือง", zip_code: "" }]
-          }
-        ]
-      };
-    })
+function buildBase77AddressList() {
+  return ALL_77_PROVINCES
+    .map(name => ({
+      name_th: name,
+      amphure: []
+    }))
     .sort((a, b) => a.name_th.localeCompare(b.name_th, 'th'));
 }
 
+function formatThaiDisplayName(item, fallbackPrefix = "") {
+  if (!item) return "";
+  if (typeof item === "string") return item.trim();
+
+  if (item.name && typeof item.name === "object") {
+    const pTh = item.prefix && typeof item.prefix === "object" ? (item.prefix.th || "") : "";
+    const nTh = item.name.th || "";
+    const combined = `${pTh}${nTh}`.trim();
+    if (combined) return combined;
+  }
+
+  const rawName = String(item.name_th || item.nameInThai || item.name || "").trim();
+  if (!rawName) return "";
+  if (fallbackPrefix && !rawName.startsWith(fallbackPrefix)) {
+    return `${fallbackPrefix}${rawName}`;
+  }
+  return rawName;
+}
+
+function normalizeAddressData(rawData) {
+  if (!Array.isArray(rawData) || rawData.length === 0) return [];
+
+  const mapByProvince = new Map();
+  buildBase77AddressList().forEach(p => mapByProvince.set(p.name_th, p));
+
+  rawData.forEach(p => {
+    const provName = formatThaiDisplayName(p, "");
+    if (!provName) return;
+
+    const isBangkok = provName === "กรุงเทพมหานคร";
+    const ampPrefix = isBangkok ? "เขต" : "อำเภอ";
+    const tamPrefix = isBangkok ? "แขวง" : "ตำบล";
+
+    const ampsRaw = p.amphure || p.amphures || p.districts || [];
+    const amphures = ampsRaw
+      .map(a => {
+        const ampName = formatThaiDisplayName(a, ampPrefix);
+        const ampZip = String(a.zip_code || a.zipCode || a.postal_code || "").trim();
+        const tamsRaw = a.tambon || a.tambons || a.sub_districts || a.subdistricts || [];
+
+        const tambons = tamsRaw
+          .map(t => ({
+            name_th: formatThaiDisplayName(t, tamPrefix),
+            zip_code: String(t.zip_code || t.zipCode || t.postal_code || ampZip || "").trim()
+          }))
+          .filter(t => t.name_th);
+
+        const inferredZip = ampZip || (tambons.find(t => t.zip_code)?.zip_code || "");
+        return {
+          name_th: ampName,
+          zip_code: inferredZip,
+          tambon: tambons
+        };
+      })
+      .filter(a => a.name_th);
+
+    if (mapByProvince.has(provName)) {
+      const existing = mapByProvince.get(provName);
+      if (amphures.length > existing.amphure.length) {
+        existing.amphure = amphures;
+      }
+    } else {
+      mapByProvince.set(provName, {
+        name_th: provName,
+        amphure: amphures
+      });
+    }
+  });
+
+  return Array.from(mapByProvince.values()).sort((a, b) =>
+    a.name_th.localeCompare(b.name_th, 'th')
+  );
+}
+
+function buildFromSplitAddressTables(provs, amps, tams) {
+  if (!Array.isArray(provs) || !Array.isArray(amps) || !Array.isArray(tams)) return [];
+
+  const tambonByAmphoe = new Map();
+  tams.forEach(t => {
+    const ampId = t.amphure_id ?? t.amphureId;
+    const nameTh = String(t.name_th || t.nameInThai || '').trim();
+    const zipCode = String(t.zip_code || t.zipCode || '').trim();
+    if (!ampId || !nameTh) return;
+    if (!tambonByAmphoe.has(ampId)) tambonByAmphoe.set(ampId, []);
+    tambonByAmphoe.get(ampId).push({ name_th: nameTh, zip_code: zipCode });
+  });
+
+  const amphoeByProvince = new Map();
+  amps.forEach(a => {
+    const ampId = a.id;
+    const provId = a.province_id ?? a.provinceId;
+    const nameTh = String(a.name_th || a.nameInThai || '').trim();
+    const ampZip = String(a.zip_code || a.zipCode || '').trim();
+    if (!ampId || !provId || !nameTh) return;
+    if (!amphoeByProvince.has(provId)) amphoeByProvince.set(provId, []);
+    const tList = tambonByAmphoe.get(ampId) || [];
+    amphoeByProvince.get(provId).push({
+      name_th: nameTh,
+      zip_code: ampZip || (tList.find(x => x.zip_code)?.zip_code || ''),
+      tambon: tList
+    });
+  });
+
+  const combined = provs.map(p => ({
+    name_th: String(p.name_th || p.nameInThai || '').trim(),
+    amphure: amphoeByProvince.get(p.id) || []
+  }));
+
+  return normalizeAddressData(combined);
+}
+
 function populateProvinceDropdown(provSelect) {
-  const currentVal = provSelect.value;
+  const previousValue = provSelect.value;
   provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
   thaiAddressData.forEach(p => {
     const opt = document.createElement('option');
@@ -762,9 +813,71 @@ function populateProvinceDropdown(provSelect) {
     opt.textContent = p.name_th;
     provSelect.appendChild(opt);
   });
-  if (currentVal && thaiAddressData.some(p => p.name_th === currentVal)) {
-    provSelect.value = currentVal;
+  if (previousValue && thaiAddressData.some(p => p.name_th === previousValue)) {
+    provSelect.value = previousValue;
   }
+}
+
+async function fetchFullThaiAddressRemote() {
+  const externalApiUrls = [
+    "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province_with_district_and_sub_district.json",
+    "https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api/latest/province_with_district_and_sub_district.json",
+    "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json",
+    "https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_province_with_amphure_tambon.json"
+  ];
+
+  for (const url of externalApiUrls) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const json = await res.json();
+      const normalized = normalizeAddressData(json);
+      const totalAmphures = normalized.reduce((sum, p) => sum + p.amphure.length, 0);
+      if (normalized.length >= 77 && totalAmphures >= 800) {
+        return normalized;
+      }
+    } catch (err) {
+      console.warn("ดึงข้อมูลที่อยู่จาก API ภายนอกไม่สำเร็จ:", url, err);
+    }
+  }
+
+  const splitApiSources = [
+    {
+      prov: "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province.json",
+      amp: "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_amphure.json",
+      tam: "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_tambon.json"
+    },
+    {
+      prov: "https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_province.json",
+      amp: "https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_amphure.json",
+      tam: "https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_tambon.json"
+    }
+  ];
+
+  for (const set of splitApiSources) {
+    try {
+      const [pRes, aRes, tRes] = await Promise.all([
+        fetch(set.prov),
+        fetch(set.amp),
+        fetch(set.tam)
+      ]);
+      if (!pRes.ok || !aRes.ok || !tRes.ok) continue;
+      const [pJson, aJson, tJson] = await Promise.all([
+        pRes.json(),
+        aRes.json(),
+        tRes.json()
+      ]);
+      const built = buildFromSplitAddressTables(pJson, aJson, tJson);
+      const totalAmphures = built.reduce((sum, p) => sum + p.amphure.length, 0);
+      if (built.length >= 77 && totalAmphures >= 800) {
+        return built;
+      }
+    } catch (err) {
+      console.warn("ดึงข้อมูลที่อยู่แบบแยก API ภายนอกไม่สำเร็จ:", err);
+    }
+  }
+
+  return null;
 }
 
 async function loadThaiAddress() {
@@ -773,7 +886,21 @@ async function loadThaiAddress() {
   const tambonSelect = document.getElementById('tambonSelect');
   const zipInput = document.getElementById('zipcodeInput');
 
-  thaiAddressData = getFallbackThaiProvinces77();
+  thaiAddressData = buildBase77AddressList();
+  try {
+    const cached = localStorage.getItem(THAI_ADDRESS_CACHE_KEY);
+    if (cached) {
+      const parsedCache = JSON.parse(cached);
+      const normalizedCache = normalizeAddressData(parsedCache);
+      const cacheAmpCount = normalizedCache.reduce((sum, p) => sum + p.amphure.length, 0);
+      if (normalizedCache.length >= 77 && cacheAmpCount >= 800) {
+        thaiAddressData = normalizedCache;
+      }
+    }
+  } catch (e) {
+    console.warn("อ่านแคชที่อยู่ไม่สำเร็จ:", e);
+  }
+
   populateProvinceDropdown(provSelect);
 
   provSelect.onchange = function() {
@@ -832,51 +959,17 @@ async function loadThaiAddress() {
     zipInput.value = tamZip || ampZip || '';
   };
 
-  // โหลดข้อมูลจังหวัด/อำเภอ/ตำบล/รหัสไปรษณีย์ฉบับเต็มจากภายนอกเบื้องหลัง
-  const remoteUrls = [
-    'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json',
-    'https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_province_with_amphure_tambon.json'
-  ];
-
-  for (const url of remoteUrls) {
+  const fullData = await fetchFullThaiAddressRemote();
+  if (fullData) {
+    thaiAddressData = fullData;
     try {
-      const res = await fetch(url);
-      if (!res.ok) continue;
-      const rawData = await res.json();
-      if (!Array.isArray(rawData) || rawData.length < 70) continue;
-
-      const normalized = rawData
-        .map(p => ({
-          name_th: (p.name_th || p.nameInThai || '').trim(),
-          amphure: (p.amphure || p.amphures || [])
-            .map(a => {
-              const ampZip = String(a.zip_code || a.zipCode || '').trim();
-              const tambons = (a.tambon || a.tambons || [])
-                .map(t => ({
-                  name_th: (t.name_th || t.nameInThai || '').trim(),
-                  zip_code: String(t.zip_code || t.zipCode || ampZip || '').trim()
-                }))
-                .filter(t => t.name_th);
-              const inferredAmpZip = ampZip || (tambons[0] ? tambons[0].zip_code : '');
-              return {
-                name_th: (a.name_th || a.nameInThai || '').trim(),
-                zip_code: inferredAmpZip,
-                tambon: tambons
-              };
-            })
-            .filter(a => a.name_th)
-        }))
-        .filter(p => p.name_th)
-        .sort((a, b) => a.name_th.localeCompare(b.name_th, 'th'));
-
-      if (normalized.length >= 70) {
-        thaiAddressData = normalized;
-        populateProvinceDropdown(provSelect);
-        if (provSelect.value) provSelect.onchange();
-        break;
-      }
-    } catch (err) {
-      console.warn('โหลดข้อมูลที่อยู่จากภายนอกไม่สำเร็จ ใช้ข้อมูลสำรองแทน:', err);
+      localStorage.setItem(THAI_ADDRESS_CACHE_KEY, JSON.stringify(fullData));
+    } catch (e) {
+      console.warn("บันทึกแคชที่อยู่ไม่สำเร็จ:", e);
+    }
+    populateProvinceDropdown(provSelect);
+    if (provSelect.value) {
+      provSelect.onchange();
     }
   }
 }
