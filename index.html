@@ -52,9 +52,15 @@
       <div class="p-4 md:p-10 border-b bg-white">
         <div class="flex flex-col md:flex-row gap-3">
           <input type="tel" id="idSearch" maxlength="13" placeholder="กรอกเลขบัตรประชาชน 13 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="flex-1 p-3.5 md:p-4 border-2 rounded-2xl outline-none focus:border-[#128F8B] text-lg md:text-xl font-mono text-center md:text-left">
-          <button type="button" onclick="search()" aria-label="ค้นหาข้อมูล" title="ค้นหาข้อมูล" class="bg-theme-green hover:bg-opacity-90 text-white px-6 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95 flex items-center justify-center">
-            <i class="fa-solid fa-magnifying-glass text-lg"></i>
-          </button>
+          <div class="flex gap-2.5">
+            <button type="button" onclick="search()" aria-label="ค้นหาข้อมูล" title="ค้นหาข้อมูล" class="flex-1 md:flex-initial bg-theme-green hover:bg-opacity-90 text-white px-6 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95 flex items-center justify-center">
+              <i class="fa-solid fa-magnifying-glass text-lg"></i>
+            </button>
+            <button type="button" onclick="openGuideModal()" class="bg-white hover:bg-emerald-50 text-theme-green border-2 border-theme-green px-4 py-3.5 md:py-4 rounded-2xl font-bold shadow-sm transition active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base shrink-0">
+              <i class="fa-solid fa-circle-question text-base"></i>
+              <span>คำอธิบาย</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -384,6 +390,45 @@
         พัฒนาโดย กองวิชาวิศวกรรมการบิน สถาบันการบินพลเรือน
       </div>
 
+    </div>
+  </div>
+
+  <!-- Modal คำอธิบายขั้นตอนการดำเนินการ -->
+  <div id="guideModal" class="modal" onclick="if(event.target === this) closeGuideModal()">
+    <div class="modal-content max-w-lg text-left p-6 rounded-3xl">
+      <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+        <h3 class="font-bold text-base md:text-lg text-theme-green">
+          <i class="fa-solid fa-circle-question mr-2"></i> คำอธิบายขั้นตอนการดำเนินการ
+        </h3>
+        <button type="button" onclick="closeGuideModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2 transition">&times;</button>
+      </div>
+
+      <ol class="space-y-3 my-4 text-xs md:text-sm text-gray-700">
+        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
+          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+          <div><strong class="text-gray-900">กรอกเลขบัตรประชาชน แล้วกดค้นหา:</strong> กรอกเลขบัตรประจำตัวประชาชน 13 หลัก แล้วกดปุ่มค้นหาเพื่อเรียกดูข้อมูล</div>
+        </li>
+        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
+          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+          <div><strong class="text-gray-900">ตรวจสอบข้อมูล:</strong> ตรวจสอบความถูกต้องของ <strong>ชื่อ-นามสกุล</strong>, <strong>รหัสนักศึกษา</strong> และ <strong>หลักสูตร</strong></div>
+        </li>
+        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
+          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+          <div><strong class="text-gray-900">ดำเนินการกรอกข้อมูล 3 เอกสาร:</strong> ทำรายการให้ครบทั้ง <strong>PDPA</strong>, <strong>หนังสือสัญญา</strong> และ <strong>ผลการเรียนฉบับสมบูรณ์ (Transcript)</strong></div>
+        </li>
+        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
+          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
+          <div><strong class="text-gray-900">รอตรวจสอบจากเจ้าหน้าที่:</strong> เจ้าหน้าที่จะตรวจสอบเอกสารและอัปเดตสถานะ (หากไม่ผ่านสามารถกลับมาทำรายการใหม่ได้)</div>
+        </li>
+        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
+          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">5</span>
+          <div><strong class="text-theme-green">กดปุ่มระบบบริหารการศึกษา:</strong> เมื่อเอกสารครบ 3/3 (เรียบร้อย) ให้กดปุ่มเพื่อรับข้อมูล <strong>Website</strong>, <strong>Username</strong> และ <strong>Password</strong></div>
+        </li>
+      </ol>
+
+      <button type="button" onclick="closeGuideModal()" class="w-full py-2.5 bg-theme-green text-white rounded-xl font-bold text-sm hover:opacity-90 transition">
+        เข้าใจแล้ว
+      </button>
     </div>
   </div>
 
