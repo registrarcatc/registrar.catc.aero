@@ -761,7 +761,10 @@ function openModal(field) {
   canvas.width = canvas.offsetWidth * ratio;
   canvas.height = canvas.offsetHeight * ratio;
   canvas.getContext("2d").scale(ratio, ratio);
-  modalSignaturePad = new SignaturePad(canvas, { backgroundColor: 'rgba(255,255,255,0)' });
+  modalSignaturePad = new SignaturePad(canvas, {
+    penColor: '#1d4ed8',
+    backgroundColor: 'rgba(255,255,255,0)'
+  });
 }
 
 function closeModal() {
