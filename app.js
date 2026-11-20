@@ -281,16 +281,31 @@ function closeProgressModal() {
 
 function setBadge(id, title, status) {
   const el = document.getElementById(id);
+  const tabMap = {
+    pdpaBadge: 'pdpa',
+    contractBadge: 'contract',
+    transBadge: 'trans'
+  };
+  const targetTab = tabMap[id];
+
+  if (targetTab) {
+    el.onclick = function() {
+      switchTab(targetTab, true);
+    };
+    el.title = `คลิกเพื่อไปยังแท็บ${title}`;
+  }
+
+  const cursorClass = targetTab ? "cursor-pointer hover:opacity-90 transition" : "";
 
   if (status === 'เรียบร้อย') {
     el.innerHTML = `${title}: ✅`;
-    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green";
+    el.className = `px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green ${cursorClass}`;
   } else if (status === 'รอตรวจสอบ') {
     el.innerHTML = `${title}: <i class="fa-solid fa-clock mr-1"></i>รอตรวจสอบ`;
-    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow";
+    el.className = `px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow ${cursorClass}`;
   } else {
     el.innerHTML = `${title}: <i class="fa-solid fa-hourglass-half mr-1"></i>รอดำเนินการ`;
-    el.className = "px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-gray";
+    el.className = `px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-gray ${cursorClass}`;
   }
 }
 
@@ -709,7 +724,7 @@ async function adminSetStatus(row, docType, decision) {
 // ==========================================
 // 4. ระบบ UI, Tab, ลายมือชื่อ และข้อมูลที่อยู่ประเทศไทย (ดึงจาก API ภายนอก)
 // ==========================================
-function switchTab(tab) {
+function switchTab(tab, shouldScroll = false) {
   ['pdpaSection', 'contractSection', 'transSection'].forEach(id => document.getElementById(id).classList.add('hidden'));
   ['tabPdpaBtn', 'tabContractBtn', 'tabTransBtn'].forEach(id => {
     document.getElementById(id).className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-gray-400 border-b-4 border-transparent transition hover:text-theme-green";
@@ -724,6 +739,13 @@ function switchTab(tab) {
   } else if (tab === 'trans') {
     document.getElementById('transSection').classList.remove('hidden');
     document.getElementById('tabTransBtn').className = "flex-1 py-3 px-1 md:py-4 text-center font-bold text-theme-green border-b-4 border-theme-green transition bg-emerald-50";
+  }
+
+  if (shouldScroll) {
+    const tabBar = document.getElementById('tabPdpaBtn')?.parentElement;
+    if (tabBar) {
+      tabBar.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }
 
@@ -894,7 +916,6 @@ function selectFilteredProvince(provinceName) {
 
   if (!provSelect) return;
 
-  // ตรวจสอบให้แน่ใจว่ามี option ของจังหวัดนี้ใน select
   if (!Array.from(provSelect.options).some(o => o.value === provinceName)) {
     populateProvinceDropdown(provSelect, false);
   }
