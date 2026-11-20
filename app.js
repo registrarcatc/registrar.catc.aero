@@ -805,17 +805,76 @@ function buildFromSplitAddressTables(provs, amps, tams) {
 }
 
 function populateProvinceDropdown(provSelect) {
+  const searchInput = document.getElementById('provinceSearchInput');
+  const clearBtn = document.getElementById('clearProvinceSearchBtn');
+  const filterText = searchInput ? searchInput.value.trim().toLowerCase() : '';
   const previousValue = provSelect.value;
-  provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
-  thaiAddressData.forEach(p => {
-    const opt = document.createElement('option');
-    opt.value = p.name_th;
-    opt.textContent = p.name_th;
-    provSelect.appendChild(opt);
-  });
-  if (previousValue && thaiAddressData.some(p => p.name_th === previousValue)) {
-    provSelect.value = previousValue;
+
+  if (clearBtn) {
+    if (filterText) {
+      clearBtn.classList.remove('hidden');
+    } else {
+      clearBtn.classList.add('hidden');
+    }
   }
+
+  const filteredProvinces = filterText
+    ? thaiAddressData.filter(p => p.name_th.toLowerCase().includes(filterText))
+    : thaiAddressData;
+
+  provSelect.innerHTML = '';
+
+  if (filteredProvinces.length === 0) {
+    const emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '-- ไม่พบจังหวัดที่ค้นหา --';
+    provSelect.appendChild(emptyOpt);
+  } else {
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = filterText
+      ? `-- เลือกจังหวัด (${filteredProvinces.length} รายการ) --`
+      : '-- เลือกจังหวัด --';
+    provSelect.appendChild(defaultOpt);
+
+    filteredProvinces.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name_th;
+      opt.textContent = p.name_th;
+      provSelect.appendChild(opt);
+    });
+  }
+
+  if (previousValue && filteredProvinces.some(p => p.name_th === previousValue)) {
+    provSelect.value = previousValue;
+  } else if (previousValue && previousValue !== provSelect.value) {
+    provSelect.value = '';
+    if (typeof provSelect.onchange === 'function') {
+      provSelect.onchange();
+    }
+  }
+}
+
+function clearProvinceFilter() {
+  const searchInput = document.getElementById('provinceSearchInput');
+  const provSelect = document.getElementById('provinceSelect');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.focus();
+  }
+  if (provSelect) {
+    populateProvinceDropdown(provSelect);
+  }
+}
+
+function bindProvinceFilter(provSelect) {
+  const searchInput = document.getElementById('provinceSearchInput');
+  if (!searchInput || searchInput.dataset.filterBound === 'true') return;
+  searchInput.dataset.filterBound = 'true';
+
+  searchInput.addEventListener('input', function() {
+    populateProvinceDropdown(provSelect);
+  });
 }
 
 async function fetchFullThaiAddressRemote() {
@@ -902,6 +961,7 @@ async function loadThaiAddress() {
   }
 
   populateProvinceDropdown(provSelect);
+  bindProvinceFilter(provSelect);
 
   provSelect.onchange = function() {
     zipInput.value = '';
