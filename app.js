@@ -129,6 +129,53 @@ function renderStudentUI() {
   } else {
     eduBtn.className = "w-full py-3.5 rounded-2xl font-bold text-white text-base shadow-md transition status-gray cursor-not-allowed";
   }
+
+  updateDocProgressBar();
+}
+
+function updateDocProgressBar() {
+  if (!currentStudent) return;
+
+  const statuses = [
+    currentStudent.pdpaStatus,
+    currentStudent.contractStatus,
+    currentStudent.transcriptStatus
+  ];
+
+  let scoreSum = 0;
+  let completedCount = 0;
+  let pendingReviewCount = 0;
+
+  statuses.forEach(st => {
+    if (st === 'เรียบร้อย') {
+      scoreSum += 100;
+      completedCount += 1;
+    } else if (st === 'รอตรวจสอบ') {
+      scoreSum += 66;
+      pendingReviewCount += 1;
+    }
+  });
+
+  const percent = Math.round(scoreSum / 3);
+  const bar = document.getElementById('docProgressBar');
+  const textEl = document.getElementById('docProgressText');
+  const subEl = document.getElementById('docProgressSubtext');
+
+  if (!bar || !textEl || !subEl) return;
+
+  textEl.innerText = `${percent}%`;
+  bar.style.width = `${percent}%`;
+
+  if (completedCount === 3) {
+    bar.className = "h-full status-green transition-all duration-300";
+    subEl.innerHTML = `<i class="fa-solid fa-circle-check text-theme-green mr-1"></i> เอกสารและ PDF เรียบร้อยครบทั้ง 3 รายการ (3/3)`;
+  } else if (pendingReviewCount > 0 || completedCount > 0) {
+    bar.className = "h-full status-yellow transition-all duration-300";
+    subEl.innerHTML = `<i class="fa-solid fa-file-pdf text-amber-600 mr-1"></i> สร้าง/ส่งไฟล์แล้ว รอตรวจสอบ ${pendingReviewCount} รายการ | เรียบร้อย ${completedCount}/3`;
+  } else {
+    bar.className = "h-full status-gray transition-all duration-300";
+    subEl.innerHTML = `<i class="fa-solid fa-hourglass-half text-gray-500 mr-1"></i> รอสร้าง PDF และส่งเอกสาร (0/3 รายการ)`;
+  }
 }
 
 function setBadge(id, title, status) {
@@ -590,61 +637,115 @@ function closeDocViewer() {
 
 // โหลดข้อมูลจังหวัด/อำเภอ/ตำบล ของประเทศไทย
 async function loadThaiAddress() {
+  const provSelect = document.getElementById('provinceSelect');
+  const amphoeSelect = document.getElementById('amphoeSelect');
+  const tambonSelect = document.getElementById('tambonSelect');
+  const zipInput = document.getElementById('zipcodeInput');
+
+  const fallbackAddressData = [
+    {
+      name_th: "กรุงเทพมหานคร",
+      amphure: [
+        {
+          name_th: "เขตจตุจักร",
+          tambon: [{ name_th: "จตุจักร", zip_code: "10900" }, { name_th: "ลาดยาว", zip_code: "10900" }]
+        },
+        {
+          name_th: "เขตดอนเมือง",
+          tambon: [{ name_th: "สีกัน", zip_code: "10210" }, { name_th: "ดอนเมือง", zip_code: "10210" }]
+        }
+      ]
+    },
+    {
+      name_th: "ประจวบคีรีขันธ์",
+      amphure: [
+        {
+          name_th: "อำเภอหัวหิน",
+          tambon: [{ name_th: "หัวหิน", zip_code: "77110" }, { name_th: "หนองแก", zip_code: "77110" }]
+        },
+        {
+          name_th: "อำเภอเมืองประจวบคีรีขันธ์",
+          tambon: [{ name_th: "ประจวบคีรีขันธ์", zip_code: "77000" }]
+        }
+      ]
+    },
+    {
+      name_th: "เชียงใหม่",
+      amphure: [
+        {
+          name_th: "อำเภอเมืองเชียงใหม่",
+          tambon: [{ name_th: "สุเทพ", zip_code: "50200" }, { name_th: "ช้างเผือก", zip_code: "50300" }]
+        }
+      ]
+    }
+  ];
+
   try {
     const res = await fetch('https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json');
-    thaiAddressData = await res.json();
-    const provSelect = document.getElementById('provinceSelect');
-    provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
-    thaiAddressData.forEach(p => {
-      provSelect.innerHTML += `<option value="${p.name_th}">${p.name_th}</option>`;
-    });
+    if (!res.ok) throw new Error('Network error');
+    const rawData = await res.json();
 
-    provSelect.addEventListener('change', function() {
-      const amphoeSelect = document.getElementById('amphoeSelect');
-      const tambonSelect = document.getElementById('tambonSelect');
-      document.getElementById('zipcodeInput').value = '';
-      tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
-      tambonSelect.disabled = true;
-
-      const selectedProv = thaiAddressData.find(p => p.name_th === this.value);
-      if (selectedProv) {
-        amphoeSelect.disabled = false;
-        amphoeSelect.classList.remove('bg-gray-100');
-        amphoeSelect.classList.add('bg-white');
-        amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
-        selectedProv.amphure.forEach(a => {
-          amphoeSelect.innerHTML += `<option value="${a.name_th}">${a.name_th}</option>`;
-        });
-      } else {
-        amphoeSelect.disabled = true;
-      }
-    });
-
-    document.getElementById('amphoeSelect').addEventListener('change', function() {
-      const tambonSelect = document.getElementById('tambonSelect');
-      document.getElementById('zipcodeInput').value = '';
-      const selectedProv = thaiAddressData.find(p => p.name_th === provSelect.value);
-      const selectedAmp = selectedProv ? selectedProv.amphure.find(a => a.name_th === this.value) : null;
-      if (selectedAmp) {
-        tambonSelect.disabled = false;
-        tambonSelect.classList.remove('bg-gray-100');
-        tambonSelect.classList.add('bg-white');
-        tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
-        selectedAmp.tambon.forEach(t => {
-          tambonSelect.innerHTML += `<option value="${t.name_th}" data-zip="${t.zip_code}">${t.name_th}</option>`;
-        });
-      } else {
-        tambonSelect.disabled = true;
-      }
-    });
-
-    document.getElementById('tambonSelect').addEventListener('change', function() {
-      const selectedOpt = this.options[this.selectedIndex];
-      document.getElementById('zipcodeInput').value = selectedOpt.getAttribute('data-zip') || '';
-    });
+    thaiAddressData = rawData.map(p => ({
+      name_th: p.name_th || p.nameInThai,
+      amphure: (p.amphure || p.amphures || []).map(a => ({
+        name_th: a.name_th || a.nameInThai,
+        tambon: (a.tambon || a.tambons || []).map(t => ({
+          name_th: t.name_th || t.nameInThai,
+          zip_code: t.zip_code || t.zipCode || ''
+        }))
+      }))
+    }));
   } catch (e) {
-    console.error("โหลดข้อมูลที่อยู่ไม่สำเร็จ", e);
+    console.warn("ใช้ชุดข้อมูลจังหวัดสำรอง:", e);
+    thaiAddressData = fallbackAddressData;
   }
+
+  provSelect.innerHTML = '<option value="">-- เลือกจังหวัด --</option>';
+  thaiAddressData.forEach(p => {
+    provSelect.innerHTML += `<option value="${p.name_th}">${p.name_th}</option>`;
+  });
+
+  provSelect.onchange = function() {
+    zipInput.value = '';
+    tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+    tambonSelect.disabled = true;
+    tambonSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm";
+
+    amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
+    const selectedProv = thaiAddressData.find(p => p.name_th === this.value);
+    if (selectedProv && selectedProv.amphure.length > 0) {
+      amphoeSelect.disabled = false;
+      amphoeSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm";
+      selectedProv.amphure.forEach(a => {
+        amphoeSelect.innerHTML += `<option value="${a.name_th}">${a.name_th}</option>`;
+      });
+    } else {
+      amphoeSelect.disabled = true;
+      amphoeSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm";
+    }
+  };
+
+  amphoeSelect.onchange = function() {
+    zipInput.value = '';
+    tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+    const selectedProv = thaiAddressData.find(p => p.name_th === provSelect.value);
+    const selectedAmp = selectedProv ? selectedProv.amphure.find(a => a.name_th === this.value) : null;
+    if (selectedAmp && selectedAmp.tambon.length > 0) {
+      tambonSelect.disabled = false;
+      tambonSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm";
+      selectedAmp.tambon.forEach(t => {
+        tambonSelect.innerHTML += `<option value="${t.name_th}" data-zip="${t.zip_code}">${t.name_th}</option>`;
+      });
+    } else {
+      tambonSelect.disabled = true;
+      tambonSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm";
+    }
+  };
+
+  tambonSelect.onchange = function() {
+    const selectedOpt = this.options[this.selectedIndex];
+    zipInput.value = selectedOpt ? (selectedOpt.getAttribute('data-zip') || '') : '';
+  };
 }
 
 window.onload = function() {
