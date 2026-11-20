@@ -310,20 +310,20 @@ function setBadge(id, title, status) {
     el.onclick = function() {
       switchTab(targetTab, true);
     };
-    el.title = `คลิกเพื่อไปยังแท็บ${title}`;
+    el.title = `คลิกเพื่อเปิดแท็บ ${title}`;
   }
 
-  const cursorClass = targetTab ? "cursor-pointer hover:opacity-90 transition" : "";
+  const interactiveClass = "cursor-pointer hover:opacity-95 hover:shadow-md transform hover:-translate-y-0.5 transition duration-150";
 
   if (status === 'เรียบร้อย') {
-    el.innerHTML = `${title}: ✅`;
-    el.className = `px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-green ${cursorClass}`;
+    el.innerHTML = `<span>${title}: ✅ เรียบร้อย</span><i class="fa-solid fa-chevron-down text-[10px] opacity-90"></i>`;
+    el.className = `w-full px-3 py-2.5 rounded-2xl text-white text-xs font-bold truncate shadow-sm status-green flex items-center justify-between gap-1.5 ${interactiveClass}`;
   } else if (status === 'รอตรวจสอบ') {
-    el.innerHTML = `${title}: <i class="fa-solid fa-clock mr-1"></i>รอตรวจสอบ`;
-    el.className = `px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-yellow ${cursorClass}`;
+    el.innerHTML = `<span><i class="fa-solid fa-clock mr-1"></i>${title}: รอตรวจสอบ</span><i class="fa-solid fa-chevron-down text-[10px] opacity-90"></i>`;
+    el.className = `w-full px-3 py-2.5 rounded-2xl text-white text-xs font-bold truncate shadow-sm status-yellow flex items-center justify-between gap-1.5 ${interactiveClass}`;
   } else {
-    el.innerHTML = `${title}: <i class="fa-solid fa-hourglass-half mr-1"></i>รอดำเนินการ`;
-    el.className = `px-3 py-2 rounded-full text-white text-xs font-bold truncate shadow-sm status-gray ${cursorClass}`;
+    el.innerHTML = `<span><i class="fa-solid fa-pen-to-square mr-1"></i>${title}: ทำรายการ</span><i class="fa-solid fa-chevron-down text-[10px] opacity-90"></i>`;
+    el.className = `w-full px-3 py-2.5 rounded-2xl text-white text-xs font-bold truncate shadow-sm status-gray flex items-center justify-between gap-1.5 ${interactiveClass}`;
   }
 }
 
