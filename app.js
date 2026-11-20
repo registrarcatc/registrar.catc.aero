@@ -169,6 +169,23 @@ async function search() {
 // ==========================================
 // 2. ระบบแสดงผลและการส่งข้อมูลฝั่งนักศึกษา
 // ==========================================
+function updateDocCompletionBar() {
+  const barEl = document.getElementById('docCompletionBar');
+  const textEl = document.getElementById('docCompletionText');
+  if (!barEl || !textEl || !currentStudent) return;
+
+  const statuses = [
+    currentStudent.pdpaStatus,
+    currentStudent.contractStatus,
+    currentStudent.transcriptStatus
+  ];
+  const passedCount = statuses.filter(st => st === 'เรียบร้อย').length;
+  const percent = Math.round((passedCount / 3) * 100);
+
+  barEl.style.width = `${percent}%`;
+  textEl.innerText = `${passedCount}/3 (${percent}%)`;
+}
+
 function renderStudentUI() {
   document.getElementById('resName').innerText = currentStudent.name;
   document.getElementById('resName2').innerText = currentStudent.name;
@@ -179,6 +196,7 @@ function renderStudentUI() {
   setBadge('pdpaBadge', 'PDPA', currentStudent.pdpaStatus);
   setBadge('contractBadge', 'Contract', currentStudent.contractStatus);
   setBadge('transBadge', 'Transcript', currentStudent.transcriptStatus);
+  updateDocCompletionBar();
 
   // จัดการแสดงผลฟอร์ม PDPA
   if (currentStudent.pdpaPdfUrl && currentStudent.pdpaStatus) {
