@@ -25,6 +25,84 @@ let thaiAddressData = [];
 let modalProgressTimer = null;
 
 // ==========================================
+// ฟังก์ชันล้างฟอร์มทั้งหมด (ป้องกันข้อมูลค้างข้ามผู้ใช้)
+// ==========================================
+function resetAllForms() {
+  const today = new Date().toISOString().split('T')[0];
+
+  // 1. ล้างฟอร์ม PDPA
+  const writtenAtEl = document.getElementById('writtenAt');
+  const dateInputEl = document.getElementById('dateInput');
+  if (writtenAtEl) writtenAtEl.value = 'สถาบันการบินพลเรือน';
+  if (dateInputEl) dateInputEl.value = today;
+
+  ['q1', 'q2', 'q3', 'q4', 'q5'].forEach(qName => {
+    const agreeRadio = document.querySelector(`input[name="${qName}"][value="ยินยอม"]`);
+    if (agreeRadio) agreeRadio.checked = true;
+  });
+
+  // 2. ล้างฟอร์ม Contract
+  const contractDateEl = document.getElementById('contractDate');
+  const birthDateEl = document.getElementById('birthDate');
+  if (contractDateEl) contractDateEl.value = today;
+  if (birthDateEl) birthDateEl.value = '';
+
+  ['phone', 'email', 'addrNo', 'addrMoo', 'addrSoi', 'addrRoad', 'parentName', 'parentPhone', 'zipcodeInput']
+    .forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+
+  const parentPreviewEl = document.getElementById('parentNamePreview');
+  if (parentPreviewEl) parentPreviewEl.innerText = 'ผู้ปกครอง';
+
+  const provSearchEl = document.getElementById('provinceSearchInput');
+  const clearProvBtn = document.getElementById('clearProvinceSearchBtn');
+  const provDropdown = document.getElementById('provinceFilterDropdown');
+  if (provSearchEl) provSearchEl.value = '';
+  if (clearProvBtn) clearProvBtn.classList.add('hidden');
+  if (provDropdown) {
+    provDropdown.innerHTML = '';
+    provDropdown.classList.add('hidden');
+  }
+
+  const provSelect = document.getElementById('provinceSelect');
+  const amphoeSelect = document.getElementById('amphoeSelect');
+  const tambonSelect = document.getElementById('tambonSelect');
+  if (provSelect) {
+    populateProvinceDropdown(provSelect, false);
+    provSelect.value = '';
+  }
+  if (amphoeSelect) {
+    amphoeSelect.innerHTML = '<option value="">-- เลือกเขต/อำเภอ --</option>';
+    amphoeSelect.disabled = true;
+    amphoeSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm";
+  }
+  if (tambonSelect) {
+    tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
+    tambonSelect.disabled = true;
+    tambonSelect.className = "w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-gray-100 text-sm";
+  }
+
+  // 3. ล้างลายมือชื่อทั้งหมด
+  savedSignatures = { user: null, studentSig: null, parentSig: null };
+  if (modalSignaturePad) modalSignaturePad.clear();
+
+  const userPrev = document.getElementById('userPreview');
+  const stuPrev = document.getElementById('studentSigPreview');
+  const parPrev = document.getElementById('parentSigPreview');
+  if (userPrev) userPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
+  if (stuPrev) stuPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
+  if (parPrev) parPrev.innerHTML = '<span class="text-gray-400 text-xs italic">คลิกเพื่อเซ็นชื่อ</span>';
+
+  // 4. ล้างไฟล์ Transcript ที่เลือกไว้
+  const fileIn = document.getElementById('fileIn');
+  const fileNameEl = document.getElementById('fileName');
+  if (fileIn) fileIn.value = '';
+  if (fileNameEl) fileNameEl.innerText = 'ขนาดไม่เกิน 5MB';
+}
+
+// ==========================================
 // 1. ระบบค้นหาหลัก (รองรับทั้ง Admin และนักศึกษา)
 // ==========================================
 async function search() {
@@ -34,6 +112,7 @@ async function search() {
     return;
   }
 
+  resetAllForms();
   Swal.fire({ title: 'กำลังค้นหาข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
   // กรณีที่ 1: กรอกเลข Admin
@@ -266,7 +345,7 @@ function copyEduValue(elementId) {
   });
 }
 
-// บันทึก PDPA พร้อมแถบบาร์ใน Modal
+// บันทึก PDPA พร้อมแถบบาร์ใน Modal และล้างฟอร์มหลังสร้าง PDF เสร็จ
 async function submitPdpa() {
   const writtenAt = document.getElementById('writtenAt').value.trim();
   const date = document.getElementById('dateInput').value;
@@ -310,6 +389,7 @@ async function submitPdpa() {
       updateProgressModalValue(100, 'สร้างไฟล์ PDF PDPA สำเร็จ (100%)');
       currentStudent.pdpaPdfUrl = res.data;
       currentStudent.pdpaStatus = 'รอตรวจสอบ';
+      resetAllForms();
       renderStudentUI();
       setTimeout(() => {
         closeProgressModal();
@@ -325,7 +405,7 @@ async function submitPdpa() {
   }
 }
 
-// บันทึก Contract พร้อมแถบบาร์ใน Modal
+// บันทึก Contract พร้อมแถบบาร์ใน Modal และล้างฟอร์มหลังสร้าง PDF เสร็จ
 async function submitContract() {
   const contractDate = document.getElementById('contractDate').value;
   const birthDate = document.getElementById('birthDate').value;
@@ -386,6 +466,7 @@ async function submitContract() {
       updateProgressModalValue(100, 'สร้างไฟล์ PDF สัญญาการศึกษาสำเร็จ (100%)');
       currentStudent.contractPdfUrl = res.data;
       currentStudent.contractStatus = 'รอตรวจสอบ';
+      resetAllForms();
       renderStudentUI();
       setTimeout(() => {
         closeProgressModal();
@@ -401,7 +482,7 @@ async function submitContract() {
   }
 }
 
-// อัปโหลด Transcript พร้อมแถบบาร์ใน Modal
+// อัปโหลด Transcript พร้อมแถบบาร์ใน Modal และล้างฟอร์มหลังเสร็จ
 async function uploadFile() {
   const fileInput = document.getElementById('fileIn');
   if (!fileInput.files || fileInput.files.length === 0) {
@@ -437,6 +518,7 @@ async function uploadFile() {
         updateProgressModalValue(100, 'อัปโหลดไฟล์ Transcript สำเร็จ (100%)');
         currentStudent.transcriptFileUrl = res.data;
         currentStudent.transcriptStatus = 'รอตรวจสอบ';
+        resetAllForms();
         renderStudentUI();
         setTimeout(() => {
           closeProgressModal();
@@ -804,7 +886,65 @@ function buildFromSplitAddressTables(provs, amps, tams) {
   return normalizeAddressData(combined);
 }
 
-function populateProvinceDropdown(provSelect) {
+// เลือกจังหวัดจากรายการ dropdown ที่กรองแล้วทันที
+function selectFilteredProvince(provinceName) {
+  const provSelect = document.getElementById('provinceSelect');
+  const searchInput = document.getElementById('provinceSearchInput');
+  const dropdown = document.getElementById('provinceFilterDropdown');
+
+  if (!provSelect) return;
+
+  // ตรวจสอบให้แน่ใจว่ามี option ของจังหวัดนี้ใน select
+  if (!Array.from(provSelect.options).some(o => o.value === provinceName)) {
+    populateProvinceDropdown(provSelect, false);
+  }
+
+  provSelect.value = provinceName;
+  if (searchInput) {
+    searchInput.value = provinceName;
+  }
+  const clearBtn = document.getElementById('clearProvinceSearchBtn');
+  if (clearBtn) {
+    clearBtn.classList.toggle('hidden', !provinceName);
+  }
+
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+  }
+
+  if (typeof provSelect.onchange === 'function') {
+    provSelect.onchange();
+  }
+}
+
+function renderFilteredProvinceDropdown(filteredProvinces, showDropdown = true) {
+  const dropdown = document.getElementById('provinceFilterDropdown');
+  if (!dropdown) return;
+
+  if (!showDropdown) {
+    dropdown.classList.add('hidden');
+    return;
+  }
+
+  if (filteredProvinces.length === 0) {
+    dropdown.innerHTML = `<div class="px-3.5 py-2.5 text-gray-400 italic text-xs md:text-sm">ไม่พบจังหวัดที่ค้นหา</div>`;
+    dropdown.classList.remove('hidden');
+    return;
+  }
+
+  dropdown.innerHTML = filteredProvinces
+    .map(p => {
+      const safeName = p.name_th.replace(/'/g, "\\'");
+      return `<button type="button" onclick="selectFilteredProvince('${safeName}')" class="w-full text-left px-3.5 py-2 hover:bg-emerald-50 hover:text-theme-green font-medium text-gray-800 transition flex items-center justify-between">
+        <span>${p.name_th}</span>
+        <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+      </button>`;
+    })
+    .join('');
+  dropdown.classList.remove('hidden');
+}
+
+function populateProvinceDropdown(provSelect, shouldShowDropdown = false) {
   const searchInput = document.getElementById('provinceSearchInput');
   const clearBtn = document.getElementById('clearProvinceSearchBtn');
   const filterText = searchInput ? searchInput.value.trim().toLowerCase() : '';
@@ -853,6 +993,12 @@ function populateProvinceDropdown(provSelect) {
       provSelect.onchange();
     }
   }
+
+  if (shouldShowDropdown && filterText) {
+    renderFilteredProvinceDropdown(filteredProvinces, true);
+  } else {
+    renderFilteredProvinceDropdown([], false);
+  }
 }
 
 function clearProvinceFilter() {
@@ -863,17 +1009,35 @@ function clearProvinceFilter() {
     searchInput.focus();
   }
   if (provSelect) {
-    populateProvinceDropdown(provSelect);
+    populateProvinceDropdown(provSelect, false);
   }
 }
 
 function bindProvinceFilter(provSelect) {
   const searchInput = document.getElementById('provinceSearchInput');
+  const dropdown = document.getElementById('provinceFilterDropdown');
   if (!searchInput || searchInput.dataset.filterBound === 'true') return;
   searchInput.dataset.filterBound = 'true';
 
   searchInput.addEventListener('input', function() {
-    populateProvinceDropdown(provSelect);
+    populateProvinceDropdown(provSelect, true);
+  });
+
+  searchInput.addEventListener('focus', function() {
+    if (this.value.trim()) {
+      populateProvinceDropdown(provSelect, true);
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!dropdown) return;
+    const isClickInsideSearch = searchInput.contains(e.target);
+    const isClickInsideDropdown = dropdown.contains(e.target);
+    const clearBtn = document.getElementById('clearProvinceSearchBtn');
+    const isClickClear = clearBtn && clearBtn.contains(e.target);
+    if (!isClickInsideSearch && !isClickInsideDropdown && !isClickClear) {
+      dropdown.classList.add('hidden');
+    }
   });
 }
 
@@ -960,7 +1124,7 @@ async function loadThaiAddress() {
     console.warn("อ่านแคชที่อยู่ไม่สำเร็จ:", e);
   }
 
-  populateProvinceDropdown(provSelect);
+  populateProvinceDropdown(provSelect, false);
   bindProvinceFilter(provSelect);
 
   provSelect.onchange = function() {
@@ -1027,7 +1191,7 @@ async function loadThaiAddress() {
     } catch (e) {
       console.warn("บันทึกแคชที่อยู่ไม่สำเร็จ:", e);
     }
-    populateProvinceDropdown(provSelect);
+    populateProvinceDropdown(provSelect, false);
     if (provSelect.value) {
       provSelect.onchange();
     }
