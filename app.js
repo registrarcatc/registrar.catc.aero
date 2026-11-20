@@ -245,6 +245,17 @@ function renderStudentUI() {
   }
 }
 
+// ควบคุม Modal คำอธิบายขั้นตอนการดำเนินการ
+function openGuideModal() {
+  const modal = document.getElementById('guideModal');
+  if (modal) modal.style.display = 'block';
+}
+
+function closeGuideModal() {
+  const modal = document.getElementById('guideModal');
+  if (modal) modal.style.display = 'none';
+}
+
 // ควบคุม Modal แถบบาร์แสดง % ความคืบหน้าขณะรอสร้าง/อัปโหลด
 function openProgressModal(titleText, labelText, percent = 10) {
   const modal = document.getElementById('progressModal');
