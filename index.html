@@ -10,7 +10,7 @@
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;700&display=swap');
     body { font-family: 'Sarabun', sans-serif; background-color: #f4f6f4; }
-   .status-gray { background-color: #9ca3af; } 
+    .status-gray { background-color: #9ca3af; } 
     .status-yellow { background-color: #f59e0b; } 
     .status-orange { background-color: #f97316; }
     .status-orange:hover { background-color: #ea580c; }
@@ -52,12 +52,30 @@
       <div class="p-4 md:p-10 border-b bg-white">
         <div class="flex flex-col md:flex-row gap-3">
           <input type="tel" id="idSearch" maxlength="13" placeholder="กรอกเลขบัตรประชาชน 13 หลัก" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="flex-1 p-3.5 md:p-4 border-2 rounded-2xl outline-none focus:border-[#128F8B] text-lg md:text-xl font-mono text-center md:text-left">
-          <button onclick="search()" class="bg-theme-green hover:bg-opacity-90 text-white px-8 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95">ค้นหาข้อมูล</button>
+          <button type="button" onclick="search()" aria-label="ค้นหาข้อมูล" title="ค้นหาข้อมูล" class="bg-theme-green hover:bg-opacity-90 text-white px-6 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95 flex items-center justify-center">
+            <i class="fa-solid fa-magnifying-glass text-lg"></i>
+          </button>
         </div>
       </div>
 
       <!-- ส่วนแสดงผลสำหรับนักศึกษาปกติ -->
       <div id="resultArea" class="hidden p-4 md:p-10 space-y-6 md:space-y-8">
+        <!-- แถบบาร์แสดง % ความคืบหน้าเอกสารและสถานะ PDF -->
+        <div class="bg-white p-4 md:p-5 rounded-3xl border border-emerald-200 shadow-sm space-y-2.5">
+          <div class="flex items-center justify-between gap-2 text-xs md:text-sm font-bold">
+            <span class="text-theme-green">
+              <i class="fa-solid fa-bars-progress mr-1.5"></i> ความคืบหน้าเอกสารและ PDF
+            </span>
+            <span id="docProgressText" class="text-gray-800 font-mono">0%</span>
+          </div>
+          <div class="w-full h-3.5 bg-gray-200 rounded-full overflow-hidden">
+            <div id="docProgressBar" class="h-full status-gray transition-all duration-300" style="width: 0%;"></div>
+          </div>
+          <p id="docProgressSubtext" class="text-xs text-gray-600 font-medium">
+            รอสร้าง PDF และส่งเอกสาร (0/3 รายการ)
+          </p>
+        </div>
+
         <div class="bg-emerald-50 p-5 md:p-6 rounded-3xl border border-emerald-100 space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div><span class="text-xs font-bold text-[#128F8B] uppercase">ชื่อ-นามสกุล</span><p id="resName" class="text-lg md:text-xl font-bold text-theme-green">-</p></div>
