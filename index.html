@@ -188,7 +188,7 @@
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div>
+                  <div class="relative">
                     <label class="text-xs font-bold text-gray-600 mb-1 block">จังหวัด <span class="text-red-500">*</span></label>
                     <div class="relative mb-1.5">
                       <input type="text" id="provinceSearchInput" placeholder="พิมพ์เพื่อกรองชื่อจังหวัด..." autocomplete="off" class="w-full py-1.5 pl-8 pr-7 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-xs md:text-sm">
@@ -197,6 +197,9 @@
                         <i class="fa-solid fa-xmark"></i>
                       </button>
                     </div>
+                    <!-- รายการ Dropdown ที่กรองได้ทันทีขณะพิมพ์ -->
+                    <div id="provinceFilterDropdown" class="hidden absolute z-30 left-0 right-0 mt-0.5 max-h-56 overflow-y-auto bg-white border-2 border-[#128F8B] rounded-xl shadow-xl divide-y divide-gray-100 text-sm"></div>
+
                     <select id="provinceSelect" class="w-full p-2.5 border rounded-xl outline-none focus:ring-2 focus:ring-[#128F8B] bg-white text-sm">
                       <option value="">-- กำลังโหลดข้อมูลจังหวัด --</option>
                     </select>
