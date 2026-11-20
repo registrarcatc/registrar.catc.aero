@@ -396,51 +396,49 @@
 
   <!-- Modal แสดงข้อมูลเข้าสู่ระบบบริหารการศึกษา -->
   <div id="eduModal" class="modal">
-    <div class="modal-content max-w-md text-left">
-      <div class="flex justify-between items-center pb-3 border-b">
-        <h3 class="font-bold text-lg text-theme-green">
+    <div class="modal-content max-w-md text-left p-6 rounded-3xl">
+      <div class="flex justify-between items-center pb-3 border-b border-gray-100">
+        <h3 class="font-bold text-base md:text-lg text-theme-green">
           <i class="fa-solid fa-graduation-cap mr-2"></i> ข้อมูลระบบบริหารการศึกษา
         </h3>
-        <button onclick="closeEduModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2">&times;</button>
+        <button onclick="closeEduModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2 transition">&times;</button>
       </div>
 
-      <div class="space-y-3 my-4 text-sm">
-        <div class="bg-gray-50 p-3 rounded-xl border">
-          <span class="text-xs font-bold text-gray-500 block">
-            <i class="fa-solid fa-globe text-theme-green mr-1"></i> เว็บไซต์ (Website)
+      <div class="divide-y divide-gray-100 my-3 text-sm">
+        <div class="py-3 flex items-center justify-between gap-3">
+          <span class="text-xs md:text-sm font-medium text-gray-500 shrink-0">
+            <i class="fa-solid fa-globe text-theme-green mr-1.5"></i> เว็บไซต์
           </span>
-          <div class="flex items-center justify-between gap-2 mt-1">
-            <a id="eduUrlText" href="https://reg.catc.or.th" target="_blank" class="font-mono font-bold text-blue-700 underline break-all">https://reg.catc.or.th</a>
-          </div>
+          <a id="eduUrlText" href="https://reg.catc.or.th" target="_blank" class="font-mono font-bold text-blue-700 underline text-right break-all">https://reg.catc.or.th</a>
         </div>
 
-        <div class="bg-gray-50 p-3 rounded-xl border">
-          <span class="text-xs font-bold text-gray-500 block">
-            <i class="fa-solid fa-user text-theme-green mr-1"></i> ชื่อผู้ใช้งาน (Username)
+        <div class="py-3 flex items-center justify-between gap-3">
+          <span class="text-xs md:text-sm font-medium text-gray-500 shrink-0">
+            <i class="fa-solid fa-user text-theme-green mr-1.5"></i> ชื่อผู้ใช้งาน
           </span>
-          <div class="flex items-center justify-between gap-2 mt-1">
+          <div class="flex items-center justify-end gap-2">
             <span id="eduUsernameText" class="font-mono font-bold text-gray-800">-</span>
-            <button type="button" onclick="copyEduValue('eduUsernameText')" class="px-2.5 py-1 bg-emerald-100 text-theme-green rounded-lg text-xs font-bold hover:bg-emerald-200 transition">
+            <button type="button" onclick="copyEduValue('eduUsernameText')" class="px-2.5 py-1 bg-emerald-50 text-theme-green border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shrink-0">
               <i class="fa-regular fa-copy mr-1"></i> คัดลอก
             </button>
           </div>
         </div>
 
-        <div class="bg-gray-50 p-3 rounded-xl border">
-          <span class="text-xs font-bold text-gray-500 block">
-            <i class="fa-solid fa-key text-theme-green mr-1"></i> รหัสผ่าน (Password)
+        <div class="py-3 flex items-center justify-between gap-3">
+          <span class="text-xs md:text-sm font-medium text-gray-500 shrink-0">
+            <i class="fa-solid fa-key text-theme-green mr-1.5"></i> รหัสผ่าน
           </span>
-          <div class="flex items-center justify-between gap-2 mt-1">
+          <div class="flex items-center justify-end gap-2">
             <span id="eduPasswordText" class="font-mono font-bold text-gray-800">-</span>
-            <button type="button" onclick="copyEduValue('eduPasswordText')" class="px-2.5 py-1 bg-emerald-100 text-theme-green rounded-lg text-xs font-bold hover:bg-emerald-200 transition">
+            <button type="button" onclick="copyEduValue('eduPasswordText')" class="px-2.5 py-1 bg-emerald-50 text-theme-green border border-emerald-200 rounded-lg text-xs font-bold hover:bg-emerald-100 transition shrink-0">
               <i class="fa-regular fa-copy mr-1"></i> คัดลอก
             </button>
           </div>
         </div>
       </div>
 
-      <div class="flex gap-3 pt-2">
-        <button type="button" onclick="closeEduModal()" class="flex-1 py-2.5 bg-gray-200 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-300 transition">ปิด</button>
+      <div class="flex gap-3 pt-3 border-t border-gray-100">
+        <button type="button" onclick="closeEduModal()" class="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-bold text-sm hover:bg-gray-200 transition">ปิด</button>
         <a id="eduGoLink" href="https://reg.catc.or.th" target="_blank" class="flex-1 py-2.5 bg-theme-green text-white rounded-xl font-bold text-sm text-center shadow hover:opacity-90 transition">
           เข้าสู่ระบบ <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
         </a>
