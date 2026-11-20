@@ -6,7 +6,7 @@ let currentStudent = null;
 let adminStudentsList = [];
 let currentAdminTab = 'pdpa';
 let thaiAddressData = [];
-let progressTimers = { pdpa: null, contract: null, trans: null };
+let modalProgressTimer = null;
 
 // ==========================================
 // 1. ระบบค้นหาหลัก (รองรับทั้ง Admin และนักศึกษา)
@@ -94,7 +94,6 @@ function renderStudentUI() {
   } else {
     document.getElementById('pdpaForm').classList.remove('hidden');
     document.getElementById('pdpaViewArea').classList.add('hidden');
-    setDocBuildProgress('pdpa', 0, '', false);
   }
 
   // จัดการแสดงผลฟอร์ม Contract
@@ -106,7 +105,6 @@ function renderStudentUI() {
   } else {
     document.getElementById('contractForm').classList.remove('hidden');
     document.getElementById('contractViewArea').classList.add('hidden');
-    setDocBuildProgress('contract', 0, '', false);
   }
 
   // จัดการแสดงผล Transcript
@@ -118,7 +116,6 @@ function renderStudentUI() {
   } else {
     document.getElementById('uploadZone').classList.remove('hidden');
     document.getElementById('transViewArea').classList.add('hidden');
-    setDocBuildProgress('trans', 0, '', false);
   }
 
   // ปุ่มเข้าสู่ระบบบริหารการศึกษา (เปลี่ยนเป็นสีส้มเมื่อสถานะเป็น "เรียบร้อย" ครบทั้ง 3 รายการ)
@@ -135,46 +132,58 @@ function renderStudentUI() {
   }
 }
 
-function setDocBuildProgress(prefix, percent, labelText, show = true) {
-  const box = document.getElementById(`${prefix}ProgressBox`);
-  const bar = document.getElementById(`${prefix}ProgressBar`);
-  const pctEl = document.getElementById(`${prefix}ProgressPercent`);
-  const lblEl = document.getElementById(`${prefix}ProgressLabel`);
-  if (!box || !bar || !pctEl || !lblEl) return;
+// ควบคุม Modal แถบบาร์แสดง % ความคืบหน้าขณะรอสร้าง/อัปโหลด
+function openProgressModal(titleText, labelText, percent = 10) {
+  const modal = document.getElementById('progressModal');
+  const titleEl = document.getElementById('progressModalTitle');
+  const labelEl = document.getElementById('progressModalLabel');
+  const pctEl = document.getElementById('progressModalPercent');
+  const barEl = document.getElementById('progressModalBar');
+  if (!modal) return;
 
-  if (!show) {
-    box.classList.add('hidden');
-    bar.style.width = '0%';
-    pctEl.innerText = '0%';
-    return;
-  }
-
-  box.classList.remove('hidden');
-  const safePercent = Math.max(0, Math.min(100, percent));
-  bar.style.width = `${safePercent}%`;
-  pctEl.innerText = `${safePercent}%`;
-  if (labelText) lblEl.innerHTML = labelText;
+  if (titleText) titleEl.innerText = titleText;
+  if (labelText) labelEl.innerText = labelText;
+  updateProgressModalValue(percent);
+  modal.style.display = 'block';
 }
 
-function startSmoothProgress(prefix, startPercent, maxPercent, labelText) {
-  stopSmoothProgress(prefix);
-  let current = startPercent;
-  setDocBuildProgress(prefix, current, labelText, true);
+function updateProgressModalValue(percent, labelText) {
+  const labelEl = document.getElementById('progressModalLabel');
+  const pctEl = document.getElementById('progressModalPercent');
+  const barEl = document.getElementById('progressModalBar');
+  const safePercent = Math.max(0, Math.min(100, percent));
 
-  progressTimers[prefix] = setInterval(() => {
+  if (labelText && labelEl) labelEl.innerText = labelText;
+  if (pctEl) pctEl.innerText = `${safePercent}%`;
+  if (barEl) barEl.style.width = `${safePercent}%`;
+}
+
+function startModalSmoothProgress(startPercent, maxPercent, labelText) {
+  stopModalSmoothProgress();
+  let current = startPercent;
+  updateProgressModalValue(current, labelText);
+
+  modalProgressTimer = setInterval(() => {
     if (current < maxPercent) {
       current += 3;
       if (current > maxPercent) current = maxPercent;
-      setDocBuildProgress(prefix, current, labelText, true);
+      updateProgressModalValue(current, labelText);
     }
   }, 180);
 }
 
-function stopSmoothProgress(prefix) {
-  if (progressTimers[prefix]) {
-    clearInterval(progressTimers[prefix]);
-    progressTimers[prefix] = null;
+function stopModalSmoothProgress() {
+  if (modalProgressTimer) {
+    clearInterval(modalProgressTimer);
+    modalProgressTimer = null;
   }
+}
+
+function closeProgressModal() {
+  stopModalSmoothProgress();
+  const modal = document.getElementById('progressModal');
+  if (modal) modal.style.display = 'none';
+  updateProgressModalValue(0, '');
 }
 
 function setBadge(id, title, status) {
@@ -243,7 +252,7 @@ function copyEduValue(elementId) {
   });
 }
 
-// บันทึก PDPA พร้อมแถบบาร์แสดง % ขณะรอสร้างไฟล์ PDF
+// บันทึก PDPA พร้อมแถบบาร์ใน Modal
 async function submitPdpa() {
   const writtenAt = document.getElementById('writtenAt').value.trim();
   const date = document.getElementById('dateInput').value;
@@ -271,8 +280,8 @@ async function submitPdpa() {
     userSig: savedSignatures.user
   };
 
-  startSmoothProgress('pdpa', 15, 90, '<i class="fa-solid fa-file-pdf mr-1.5"></i> กำลังสร้างไฟล์ PDF PDPA...');
-  Swal.fire({ title: 'กำลังสร้างเอกสาร PDF PDPA...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  openProgressModal('กำลังสร้างเอกสาร PDF PDPA', 'กำลังเตรียมข้อมูลและสร้างไฟล์ PDF...', 15);
+  startModalSmoothProgress(15, 90, 'กำลังสร้างไฟล์ PDF PDPA และบันทึกข้อมูล...');
 
   try {
     const response = await fetch(API_URL, {
@@ -281,27 +290,28 @@ async function submitPdpa() {
       body: JSON.stringify({ action: 'savePdpa', formData: formData })
     });
     const res = await response.json();
-    stopSmoothProgress('pdpa');
+    stopModalSmoothProgress();
 
     if (res.status === 'success') {
-      setDocBuildProgress('pdpa', 100, '<i class="fa-solid fa-circle-check mr-1.5"></i> สร้างไฟล์ PDF PDPA สำเร็จ (100%)', true);
+      updateProgressModalValue(100, 'สร้างไฟล์ PDF PDPA สำเร็จ (100%)');
       currentStudent.pdpaPdfUrl = res.data;
       currentStudent.pdpaStatus = 'รอตรวจสอบ';
       renderStudentUI();
-      setTimeout(() => setDocBuildProgress('pdpa', 0, '', false), 1000);
-      Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF PDPA สำเร็จ' });
+      setTimeout(() => {
+        closeProgressModal();
+        Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF PDPA สำเร็จ' });
+      }, 600);
     } else {
-      setDocBuildProgress('pdpa', 0, '', false);
+      closeProgressModal();
       Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message });
     }
   } catch (err) {
-    stopSmoothProgress('pdpa');
-    setDocBuildProgress('pdpa', 0, '', false);
+    closeProgressModal();
     Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
   }
 }
 
-// บันทึก Contract พร้อมแถบบาร์แสดง % ขณะรอสร้างไฟล์ PDF
+// บันทึก Contract พร้อมแถบบาร์ใน Modal
 async function submitContract() {
   const contractDate = document.getElementById('contractDate').value;
   const birthDate = document.getElementById('birthDate').value;
@@ -346,8 +356,8 @@ async function submitContract() {
     parentSig: savedSignatures.parentSig
   };
 
-  startSmoothProgress('contract', 15, 90, '<i class="fa-solid fa-file-pdf mr-1.5"></i> กำลังสร้างไฟล์ PDF สัญญาการศึกษา...');
-  Swal.fire({ title: 'กำลังสร้างเอกสาร PDF สัญญาการศึกษา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  openProgressModal('กำลังสร้างเอกสาร PDF สัญญาการศึกษา', 'กำลังเตรียมข้อมูลและสร้างไฟล์ PDF...', 15);
+  startModalSmoothProgress(15, 90, 'กำลังสร้างไฟล์ PDF สัญญาการศึกษาและบันทึกข้อมูล...');
 
   try {
     const response = await fetch(API_URL, {
@@ -356,27 +366,28 @@ async function submitContract() {
       body: JSON.stringify({ action: 'saveContract', formData: formData })
     });
     const res = await response.json();
-    stopSmoothProgress('contract');
+    stopModalSmoothProgress();
 
     if (res.status === 'success') {
-      setDocBuildProgress('contract', 100, '<i class="fa-solid fa-circle-check mr-1.5"></i> สร้างไฟล์ PDF สัญญาการศึกษาสำเร็จ (100%)', true);
+      updateProgressModalValue(100, 'สร้างไฟล์ PDF สัญญาการศึกษาสำเร็จ (100%)');
       currentStudent.contractPdfUrl = res.data;
       currentStudent.contractStatus = 'รอตรวจสอบ';
       renderStudentUI();
-      setTimeout(() => setDocBuildProgress('contract', 0, '', false), 1000);
-      Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF สัญญาสำเร็จ' });
+      setTimeout(() => {
+        closeProgressModal();
+        Swal.fire({ icon: 'success', title: 'บันทึกและสร้าง PDF สัญญาสำเร็จ' });
+      }, 600);
     } else {
-      setDocBuildProgress('contract', 0, '', false);
+      closeProgressModal();
       Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: res.message });
     }
   } catch (err) {
-    stopSmoothProgress('contract');
-    setDocBuildProgress('contract', 0, '', false);
+    closeProgressModal();
     Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
   }
 }
 
-// อัปโหลด Transcript พร้อมแถบบาร์แสดง % ขณะกำลังอัปโหลด
+// อัปโหลด Transcript พร้อมแถบบาร์ใน Modal
 async function uploadFile() {
   const fileInput = document.getElementById('fileIn');
   if (!fileInput.files || fileInput.files.length === 0) {
@@ -389,12 +400,11 @@ async function uploadFile() {
     return;
   }
 
-  setDocBuildProgress('trans', 10, '<i class="fa-solid fa-file-pdf mr-1.5"></i> กำลังอ่านไฟล์ Transcript...', true);
-  Swal.fire({ title: 'กำลังอัปโหลดไฟล์ Transcript...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+  openProgressModal('กำลังอัปโหลดไฟล์ Transcript', 'กำลังอ่านไฟล์ PDF...', 10);
 
   const reader = new FileReader();
   reader.onload = async function() {
-    startSmoothProgress('trans', 25, 90, '<i class="fa-solid fa-cloud-arrow-up mr-1.5"></i> กำลังอัปโหลดไฟล์ Transcript...');
+    startModalSmoothProgress(25, 90, 'กำลังอัปโหลดไฟล์ Transcript...');
     try {
       const response = await fetch(API_URL, {
         method: 'POST',
@@ -407,28 +417,28 @@ async function uploadFile() {
         })
       });
       const res = await response.json();
-      stopSmoothProgress('trans');
+      stopModalSmoothProgress();
 
       if (res.status === 'success') {
-        setDocBuildProgress('trans', 100, '<i class="fa-solid fa-circle-check mr-1.5"></i> อัปโหลดไฟล์ Transcript สำเร็จ (100%)', true);
+        updateProgressModalValue(100, 'อัปโหลดไฟล์ Transcript สำเร็จ (100%)');
         currentStudent.transcriptFileUrl = res.data;
         currentStudent.transcriptStatus = 'รอตรวจสอบ';
         renderStudentUI();
-        setTimeout(() => setDocBuildProgress('trans', 0, '', false), 1000);
-        Swal.fire({ icon: 'success', title: 'อัปโหลด Transcript สำเร็จ' });
+        setTimeout(() => {
+          closeProgressModal();
+          Swal.fire({ icon: 'success', title: 'อัปโหลด Transcript สำเร็จ' });
+        }, 600);
       } else {
-        setDocBuildProgress('trans', 0, '', false);
+        closeProgressModal();
         Swal.fire({ icon: 'error', title: 'อัปโหลดไม่สำเร็จ', text: res.message });
       }
     } catch (err) {
-      stopSmoothProgress('trans');
-      setDocBuildProgress('trans', 0, '', false);
+      closeProgressModal();
       Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: err.message });
     }
   };
   reader.onerror = function() {
-    stopSmoothProgress('trans');
-    setDocBuildProgress('trans', 0, '', false);
+    closeProgressModal();
     Swal.fire({ icon: 'error', title: 'อ่านไฟล์ไม่สำเร็จ' });
   };
   reader.readAsDataURL(file);
@@ -444,7 +454,6 @@ function logoutAdmin() {
 }
 
 function renderAdminDashboard() {
-  // 1. คำนวณ Dashboard ภาพรวมด้านบน
   const totalCount = adminStudentsList.length;
   const completedCount = adminStudentsList.filter(s =>
     s.pdpaStatus === "เรียบร้อย" &&
@@ -457,7 +466,6 @@ function renderAdminDashboard() {
   document.getElementById('dashCompleted').innerText = completedCount;
   document.getElementById('dashPending').innerText = pendingCount;
 
-  // 2. นับเฉพาะช่องที่มีลิงก์หลักฐานจริง (ไม่เป็นค่าว่าง) และมีสถานะ "รอตรวจสอบ"
   const countPdpa = adminStudentsList.filter(s => s.pdpaPdfUrl !== "" && s.pdpaStatus === "รอตรวจสอบ").length;
   const countContract = adminStudentsList.filter(s => s.contractPdfUrl !== "" && s.contractStatus === "รอตรวจสอบ").length;
   const countTrans = adminStudentsList.filter(s => s.transcriptFileUrl !== "" && s.transcriptStatus === "รอตรวจสอบ").length;
@@ -505,7 +513,6 @@ function renderAdminTable() {
   filtered.forEach(s => {
     const fileUrl = currentAdminTab === 'pdpa' ? s.pdpaPdfUrl : (currentAdminTab === 'contract' ? s.contractPdfUrl : s.transcriptFileUrl);
 
-    // 1. แถวสำหรับตาราง (จอใหญ่)
     tbody.innerHTML += `
       <tr class="hover:bg-gray-50 border-b">
         <td class="p-4 font-mono font-bold">${s.studentId}</td>
@@ -527,7 +534,6 @@ function renderAdminTable() {
       </tr>
     `;
 
-    // 2. Card สำหรับมือถือ (จอเล็ก)
     cardList.innerHTML += `
       <div class="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm space-y-3">
         <div class="flex justify-between items-start gap-2 border-b pb-2.5">
@@ -664,7 +670,7 @@ function closeDocViewer() {
   document.getElementById('docViewerModal').style.display = 'none';
 }
 
-// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล ของประเทศไทย (มีฐานข้อมูล 77 จังหวัดในตัว + ดึงข้อมูลเต็มจากภายนอกอัตโนมัติ)
+// โหลดข้อมูลจังหวัด/อำเภอ/ตำบล และรหัสไปรษณีย์อัตโนมัติ
 function getFallbackThaiProvinces77() {
   const all77Names = [
     "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น",
@@ -684,17 +690,46 @@ function getFallbackThaiProvinces77() {
   const detailedPreset = {
     "กรุงเทพมหานคร": {
       amphure: [
-        { name_th: "เขตจตุจักร", tambon: [{ name_th: "จตุจักร", zip_code: "10900" }, { name_th: "ลาดยาว", zip_code: "10900" }, { name_th: "เสนานิคม", zip_code: "10900" }] },
-        { name_th: "เขตดอนเมือง", tambon: [{ name_th: "สีกัน", zip_code: "10210" }, { name_th: "ดอนเมือง", zip_code: "10210" }] },
-        { name_th: "เขตพญาไท", tambon: [{ name_th: "สามเสนใน", zip_code: "10400" }] },
-        { name_th: "เขตปทุมวัน", tambon: [{ name_th: "ลุมพินี", zip_code: "10330" }, { name_th: "ปทุมวัน", zip_code: "10330" }] }
+        { name_th: "เขตจตุจักร", zip_code: "10900", tambon: [{ name_th: "จตุจักร", zip_code: "10900" }, { name_th: "ลาดยาว", zip_code: "10900" }, { name_th: "เสนานิคม", zip_code: "10900" }] },
+        { name_th: "เขตดอนเมือง", zip_code: "10210", tambon: [{ name_th: "สีกัน", zip_code: "10210" }, { name_th: "ดอนเมือง", zip_code: "10210" }] },
+        { name_th: "เขตพญาไท", zip_code: "10400", tambon: [{ name_th: "สามเสนใน", zip_code: "10400" }] },
+        { name_th: "เขตปทุมวัน", zip_code: "10330", tambon: [{ name_th: "ลุมพินี", zip_code: "10330" }, { name_th: "ปทุมวัน", zip_code: "10330" }] }
       ]
     },
     "ประจวบคีรีขันธ์": {
       amphure: [
-        { name_th: "อำเภอหัวหิน", tambon: [{ name_th: "หัวหิน", zip_code: "77110" }, { name_th: "หนองแก", zip_code: "77110" }] },
-        { name_th: "อำเภอเมืองประจวบคีรีขันธ์", tambon: [{ name_th: "ประจวบคีรีขันธ์", zip_code: "77000" }, { name_th: "คลองวาฬ", zip_code: "77210" }] },
-        { name_th: "อำเภอปราณบุรี", tambon: [{ name_th: "ปราณบุรี", zip_code: "77120" }, { name_th: "ปากน้ำปราณ", zip_code: "77220" }] }
+        { name_th: "อำเภอหัวหิน", zip_code: "77110", tambon: [{ name_th: "หัวหิน", zip_code: "77110" }, { name_th: "หนองแก", zip_code: "77110" }] },
+        { name_th: "อำเภอเมืองประจวบคีรีขันธ์", zip_code: "77000", tambon: [{ name_th: "ประจวบคีรีขันธ์", zip_code: "77000" }, { name_th: "คลองวาฬ", zip_code: "77210" }] },
+        { name_th: "อำเภอปราณบุรี", zip_code: "77120", tambon: [{ name_th: "ปราณบุรี", zip_code: "77120" }, { name_th: "ปากน้ำปราณ", zip_code: "77220" }] }
+      ]
+    },
+    "นนทบุรี": {
+      amphure: [
+        { name_th: "อำเภอเมืองนนทบุรี", zip_code: "11000", tambon: [{ name_th: "ตลาดขวัญ", zip_code: "11000" }, { name_th: "บางกระสอ", zip_code: "11000" }, { name_th: "ท่าทราย", zip_code: "11000" }] },
+        { name_th: "อำเภอปากเกร็ด", zip_code: "11120", tambon: [{ name_th: "ปากเกร็ด", zip_code: "11120" }, { name_th: "บางพูด", zip_code: "11120" }] }
+      ]
+    },
+    "ปทุมธานี": {
+      amphure: [
+        { name_th: "อำเภอเมืองปทุมธานี", zip_code: "12000", tambon: [{ name_th: "บางปรอก", zip_code: "12000" }, { name_th: "บ้านใหม่", zip_code: "12000" }] },
+        { name_th: "อำเภอคลองหลวง", zip_code: "12120", tambon: [{ name_th: "คลองหนึ่ง", zip_code: "12120" }, { name_th: "คลองสอง", zip_code: "12120" }] }
+      ]
+    },
+    "สมุทรปราการ": {
+      amphure: [
+        { name_th: "อำเภอเมืองสมุทรปราการ", zip_code: "10270", tambon: [{ name_th: "ปากน้ำ", zip_code: "10270" }, { name_th: "สำโรงเหนือ", zip_code: "10270" }] },
+        { name_th: "อำเภอบางพลี", zip_code: "10540", tambon: [{ name_th: "บางพลีใหญ่", zip_code: "10540" }, { name_th: "บางแก้ว", zip_code: "10540" }] }
+      ]
+    },
+    "เชียงใหม่": {
+      amphure: [
+        { name_th: "อำเภอเมืองเชียงใหม่", zip_code: "50200", tambon: [{ name_th: "ศรีภูมิ", zip_code: "50200" }, { name_th: "สุเทพ", zip_code: "50200" }, { name_th: "ช้างเผือก", zip_code: "50300" }] }
+      ]
+    },
+    "ชลบุรี": {
+      amphure: [
+        { name_th: "อำเภอเมืองชลบุรี", zip_code: "20000", tambon: [{ name_th: "บางปลาสร้อย", zip_code: "20000" }, { name_th: "เสม็ด", zip_code: "20000" }] },
+        { name_th: "อำเภอบางละมุง", zip_code: "20150", tambon: [{ name_th: "หนองปรือ", zip_code: "20150" }, { name_th: "นาเกลือ", zip_code: "20150" }] }
       ]
     }
   };
@@ -709,7 +744,8 @@ function getFallbackThaiProvinces77() {
         amphure: [
           {
             name_th: `อำเภอเมือง${name.replace(/^จังหวัด/, '')}`,
-            tambon: [{ name_th: `ในเมือง`, zip_code: "" }]
+            zip_code: "",
+            tambon: [{ name_th: "ในเมือง", zip_code: "" }]
           }
         ]
       };
@@ -737,7 +773,6 @@ async function loadThaiAddress() {
   const tambonSelect = document.getElementById('tambonSelect');
   const zipInput = document.getElementById('zipcodeInput');
 
-  // แสดงรายชื่อจังหวัดทันทีจากข้อมูลสำรองในตัว เพื่อไม่ให้ค้างหรือว่างเปล่า
   thaiAddressData = getFallbackThaiProvinces77();
   populateProvinceDropdown(provSelect);
 
@@ -756,6 +791,7 @@ async function loadThaiAddress() {
         const opt = document.createElement('option');
         opt.value = a.name_th;
         opt.textContent = a.name_th;
+        opt.setAttribute('data-zip', a.zip_code || '');
         amphoeSelect.appendChild(opt);
       });
     } else {
@@ -765,7 +801,10 @@ async function loadThaiAddress() {
   };
 
   amphoeSelect.onchange = function() {
-    zipInput.value = '';
+    const selectedAmpOpt = this.options[this.selectedIndex];
+    const ampZip = selectedAmpOpt ? (selectedAmpOpt.getAttribute('data-zip') || '') : '';
+    zipInput.value = ampZip;
+
     tambonSelect.innerHTML = '<option value="">-- เลือกตำบล/แขวง --</option>';
     const selectedProv = thaiAddressData.find(p => p.name_th === provSelect.value);
     const selectedAmp = selectedProv ? selectedProv.amphure.find(a => a.name_th === this.value) : null;
@@ -776,7 +815,7 @@ async function loadThaiAddress() {
         const opt = document.createElement('option');
         opt.value = t.name_th;
         opt.textContent = t.name_th;
-        opt.setAttribute('data-zip', t.zip_code || '');
+        opt.setAttribute('data-zip', t.zip_code || ampZip || '');
         tambonSelect.appendChild(opt);
       });
     } else {
@@ -786,11 +825,14 @@ async function loadThaiAddress() {
   };
 
   tambonSelect.onchange = function() {
-    const selectedOpt = this.options[this.selectedIndex];
-    zipInput.value = selectedOpt ? (selectedOpt.getAttribute('data-zip') || '') : '';
+    const selectedTambonOpt = this.options[this.selectedIndex];
+    const selectedAmpOpt = amphoeSelect.options[amphoeSelect.selectedIndex];
+    const tamZip = selectedTambonOpt ? (selectedTambonOpt.getAttribute('data-zip') || '') : '';
+    const ampZip = selectedAmpOpt ? (selectedAmpOpt.getAttribute('data-zip') || '') : '';
+    zipInput.value = tamZip || ampZip || '';
   };
 
-  // พยายามดึงข้อมูลอำเภอ/ตำบล/รหัสไปรษณีย์ฉบับเต็มจากภายนอกเบื้องหลัง
+  // โหลดข้อมูลจังหวัด/อำเภอ/ตำบล/รหัสไปรษณีย์ฉบับเต็มจากภายนอกเบื้องหลัง
   const remoteUrls = [
     'https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json',
     'https://cdn.jsdelivr.net/gh/kongvut/thai-province-data@master/api_province_with_amphure_tambon.json'
@@ -807,15 +849,21 @@ async function loadThaiAddress() {
         .map(p => ({
           name_th: (p.name_th || p.nameInThai || '').trim(),
           amphure: (p.amphure || p.amphures || [])
-            .map(a => ({
-              name_th: (a.name_th || a.nameInThai || '').trim(),
-              tambon: (a.tambon || a.tambons || [])
+            .map(a => {
+              const ampZip = String(a.zip_code || a.zipCode || '').trim();
+              const tambons = (a.tambon || a.tambons || [])
                 .map(t => ({
                   name_th: (t.name_th || t.nameInThai || '').trim(),
-                  zip_code: String(t.zip_code || t.zipCode || '').trim()
+                  zip_code: String(t.zip_code || t.zipCode || ampZip || '').trim()
                 }))
-                .filter(t => t.name_th)
-            }))
+                .filter(t => t.name_th);
+              const inferredAmpZip = ampZip || (tambons[0] ? tambons[0].zip_code : '');
+              return {
+                name_th: (a.name_th || a.nameInThai || '').trim(),
+                zip_code: inferredAmpZip,
+                tambon: tambons
+              };
+            })
             .filter(a => a.name_th)
         }))
         .filter(p => p.name_th)
@@ -824,6 +872,7 @@ async function loadThaiAddress() {
       if (normalized.length >= 70) {
         thaiAddressData = normalized;
         populateProvinceDropdown(provSelect);
+        if (provSelect.value) provSelect.onchange();
         break;
       }
     } catch (err) {
