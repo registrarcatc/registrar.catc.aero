@@ -24,8 +24,9 @@
     .bg-theme-gold { background-color: #c5a059; }
     .bg-theme-gold:hover { background-color: #b08d48; }
     
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); }
-    .modal-content { background: white; margin: 5% auto; padding: 20px; border-radius: 1.5rem; width: 95%; max-width: 500px; text-align: center; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); overflow-y: auto; }
+    .modal-content { background: white; margin: 3% auto; padding: 20px; border-radius: 1.5rem; width: 95%; max-width: 500px; text-align: center; }
+    .guide-modal-content { background: #ffffff; margin: 2% auto; padding: 20px 24px; border-radius: 1.5rem; width: 95%; max-width: 560px; text-align: center; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); }
     .sig-canvas-modal { border: 2px solid #cbd5e1; background: #ffffff; border-radius: 0.75rem; width: 100%; height: 300px; touch-action: none; }
     .preview-box { width: 100%; max-width: 250px; height: 100px; border: 2px dashed #cbd5e1; background: #f8fafc; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; }
     .preview-box img { height: 90%; object-fit: contain; }
@@ -56,7 +57,7 @@
             <button type="button" onclick="search()" aria-label="ค้นหาข้อมูล" title="ค้นหาข้อมูล" class="flex-1 md:flex-initial bg-theme-green hover:bg-opacity-90 text-white px-6 py-3.5 md:py-4 rounded-2xl font-bold shadow-lg transition active:scale-95 flex items-center justify-center">
               <i class="fa-solid fa-magnifying-glass text-lg"></i>
             </button>
-            <button type="button" onclick="openGuideModal()" class="bg-white hover:bg-emerald-50 text-theme-green border-2 border-theme-green px-4 py-3.5 md:py-4 rounded-2xl font-bold shadow-sm transition active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base shrink-0">
+            <button type="button" onclick="openGuideModal(0)" class="bg-white hover:bg-emerald-50 text-theme-green border-2 border-theme-green px-4 py-3.5 md:py-4 rounded-2xl font-bold shadow-sm transition active:scale-95 flex items-center justify-center gap-2 text-sm md:text-base shrink-0">
               <i class="fa-solid fa-circle-question text-base"></i>
               <span>คำอธิบาย</span>
             </button>
@@ -393,42 +394,61 @@
     </div>
   </div>
 
-  <!-- Modal คำอธิบายขั้นตอนการดำเนินการ -->
+  <!-- Modal QUICK START GUIDE (Interactive 5 ขั้นตอน) -->
   <div id="guideModal" class="modal" onclick="if(event.target === this) closeGuideModal()">
-    <div class="modal-content max-w-lg text-left p-6 rounded-3xl">
-      <div class="flex justify-between items-center pb-3 border-b border-gray-100">
-        <h3 class="font-bold text-base md:text-lg text-theme-green">
-          <i class="fa-solid fa-circle-question mr-2"></i> คำอธิบายขั้นตอนการดำเนินการ
-        </h3>
-        <button type="button" onclick="closeGuideModal()" class="text-gray-400 hover:text-gray-700 font-bold text-xl px-2 transition">&times;</button>
+    <div class="guide-modal-content">
+      <!-- ส่วนหัว: QUICK START GUIDE และปุ่ม ข้าม × -->
+      <div class="flex items-center justify-between text-xs font-bold tracking-wider text-gray-500 uppercase mb-2.5">
+        <span>QUICK START GUIDE</span>
+        <button type="button" onclick="closeGuideModal()" class="text-gray-600 hover:text-gray-900 font-bold text-xs flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-gray-100 transition">
+          <span>ข้าม</span>
+          <span class="text-base leading-none">&times;</span>
+        </button>
       </div>
 
-      <ol class="space-y-3 my-4 text-xs md:text-sm text-gray-700">
-        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
-          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
-          <div><strong class="text-gray-900">กรอกเลขบัตรประชาชน แล้วกดค้นหา:</strong> กรอกเลขบัตรประจำตัวประชาชน 13 หลัก แล้วกดปุ่มค้นหาเพื่อเรียกดูข้อมูล</div>
-        </li>
-        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
-          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
-          <div><strong class="text-gray-900">ตรวจสอบข้อมูล:</strong> ตรวจสอบความถูกต้องของ <strong>ชื่อ-นามสกุล</strong>, <strong>รหัสนักศึกษา</strong> และ <strong>หลักสูตร</strong></div>
-        </li>
-        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
-          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
-          <div><strong class="text-gray-900">ดำเนินการกรอกข้อมูล 3 เอกสาร:</strong> ทำรายการให้ครบทั้ง <strong>PDPA</strong>, <strong>หนังสือสัญญา</strong> และ <strong>ผลการเรียนฉบับสมบูรณ์ (Transcript)</strong></div>
-        </li>
-        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-gray-50">
-          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">4</span>
-          <div><strong class="text-gray-900">รอตรวจสอบจากเจ้าหน้าที่:</strong> เจ้าหน้าที่จะตรวจสอบเอกสารและอัปเดตสถานะ (หากไม่ผ่านสามารถกลับมาทำรายการใหม่ได้)</div>
-        </li>
-        <li class="flex items-start gap-3 p-2.5 rounded-xl bg-emerald-50 border border-emerald-100">
-          <span class="w-6 h-6 rounded-full bg-theme-green text-white font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">5</span>
-          <div><strong class="text-theme-green">กดปุ่มระบบบริหารการศึกษา:</strong> เมื่อเอกสารครบ 3/3 (เรียบร้อย) ให้กดปุ่มเพื่อรับข้อมูล <strong>Website</strong>, <strong>Username</strong> และ <strong>Password</strong></div>
-        </li>
-      </ol>
+      <!-- แถบความคืบหน้า 5 ขั้นตอน -->
+      <div id="guideProgressBars" class="grid grid-cols-5 gap-1.5 mb-4">
+        <div class="h-1 rounded-full bg-blue-600 transition-all"></div>
+        <div class="h-1 rounded-full bg-gray-200 transition-all"></div>
+        <div class="h-1 rounded-full bg-gray-200 transition-all"></div>
+        <div class="h-1 rounded-full bg-gray-200 transition-all"></div>
+        <div class="h-1 rounded-full bg-gray-200 transition-all"></div>
+      </div>
 
-      <button type="button" onclick="closeGuideModal()" class="w-full py-2.5 bg-theme-green text-white rounded-xl font-bold text-sm hover:opacity-90 transition">
-        เข้าใจแล้ว
-      </button>
+      <!-- กรอบภาพประกอบแต่ละ Step -->
+      <div id="guideIllustrationBox" class="w-full h-56 md:h-64 rounded-2xl bg-blue-50/70 flex items-center justify-center p-4 overflow-hidden mb-4"></div>
+
+      <!-- หมายเลข STEP, หัวข้อ และคำอธิบาย -->
+      <p id="guideStepCounter" class="text-xs font-bold tracking-wider text-blue-600 uppercase">STEP 01 / 05</p>
+      <h3 id="guideStepTitle" class="text-lg md:text-xl font-bold text-gray-900 mt-1">-</h3>
+      <p id="guideStepDesc" class="text-xs md:text-sm text-gray-500 mt-1.5 leading-relaxed min-h-[2.75rem]">-</p>
+
+      <!-- จุดไข่ปลาแสดงตำแหน่ง Step -->
+      <div id="guideDots" class="flex items-center justify-center gap-1.5 my-4"></div>
+
+      <!-- ปุ่มย้อนกลับ และ ถัดไป -->
+      <div class="flex items-center justify-between gap-3 pt-1">
+        <button type="button" id="guidePrevBtn" onclick="prevGuideStep()" class="px-5 py-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs md:text-sm font-bold transition flex items-center gap-1.5">
+          <i class="fa-solid fa-chevron-left text-xs"></i>
+          <span>ย้อนกลับ</span>
+        </button>
+
+        <button type="button" id="guideNextBtn" onclick="nextGuideStep()" class="px-6 py-2.5 rounded-full bg-gray-900 hover:bg-black text-white text-xs md:text-sm font-bold shadow transition flex items-center gap-1.5">
+          <span id="guideNextLabel">ถัดไป</span>
+          <i id="guideNextIcon" class="fa-solid fa-chevron-right text-xs"></i>
+        </button>
+      </div>
+
+      <!-- ตัวเลือกไม่ต้องแสดงคำแนะนำอีกในครั้งถัดไป -->
+      <div class="mt-4 pt-3.5 border-t border-gray-100 text-left">
+        <label class="inline-flex items-center gap-2.5 cursor-pointer select-none text-xs md:text-sm font-medium text-gray-800">
+          <input type="checkbox" id="guideDontShowAgain" onchange="toggleDontShowGuide(this.checked)" class="sr-only peer">
+          <span id="guideCheckboxVisual" class="w-5 h-5 rounded-full bg-gray-900 text-white flex items-center justify-center text-[11px] transition">
+            <i class="fa-solid fa-check"></i>
+          </span>
+          <span>ไม่ต้องแสดงคำแนะนำอีกในครั้งถัดไป</span>
+        </label>
+      </div>
     </div>
   </div>
 
