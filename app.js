@@ -2,6 +2,7 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
 const ADMIN_ID = "1032355109000";
 const THAI_ADDRESS_CACHE_KEY = "CATC_THAI_ADDRESS_V1";
+const HIDE_GUIDE_STORAGE_KEY = "CATC_HIDE_QUICK_GUIDE_V1";
 
 const ALL_77_PROVINCES = [
   "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น",
@@ -18,6 +19,112 @@ const ALL_77_PROVINCES = [
   "อุบลราชธานี"
 ];
 
+const QUICK_GUIDE_STEPS = [
+  {
+    counter: "STEP 01 / 05",
+    title: "เริ่มต้นใช้งาน",
+    desc: "กรอกเลขบัตรประชาชน 13 หลัก แล้วกดปุ่มค้นหา",
+    svg: `
+      <svg viewBox="0 0 360 190" class="w-full h-full max-w-[340px]">
+        <rect x="65" y="16" width="230" height="145" rx="12" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
+        <rect x="65" y="16" width="230" height="26" rx="10" fill="#1d4ed8"/>
+        <circle cx="82" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="95" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="108" cy="29" r="4" fill="#bfdbfe"/>
+        <rect x="92" y="64" width="132" height="32" rx="8" fill="#f1f5f9" stroke="#cbd5e1" stroke-width="2"/>
+        <text x="104" y="84" font-family="monospace" font-size="13" fill="#334155" font-weight="bold">1-xxxx-xxxxx-xx-x</text>
+        <rect x="232" y="64" width="42" height="32" rx="8" fill="#128F8B"/>
+        <circle cx="251" cy="79" r="6" fill="none" stroke="#ffffff" stroke-width="2.2"/>
+        <line x1="255" y1="84" x2="260" y2="89" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+        <rect x="92" y="110" width="182" height="12" rx="6" fill="#dbeafe"/>
+        <polygon points="35,161 325,161 342,175 18,175" fill="#94a3b8"/>
+      </svg>
+    `
+  },
+  {
+    counter: "STEP 02 / 05",
+    title: "ตรวจสอบข้อมูลส่วนตัว",
+    desc: "ตรวจสอบข้อมูล ชื่อ-นามสกุล , รหัสนักศึกษา , หลักสูตร",
+    svg: `
+      <svg viewBox="0 0 360 190" class="w-full h-full max-w-[340px]">
+        <rect x="65" y="16" width="230" height="145" rx="12" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
+        <rect x="65" y="16" width="230" height="26" rx="10" fill="#1d4ed8"/>
+        <circle cx="82" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="95" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="108" cy="29" r="4" fill="#bfdbfe"/>
+        <rect x="88" y="56" width="184" height="26" rx="7" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <text x="98" y="73" font-size="11" fill="#166534" font-weight="bold">ชื่อ-นามสกุล &amp; รหัสนักศึกษา</text>
+        <rect x="88" y="90" width="184" height="26" rx="7" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="98" y="107" font-size="11" fill="#1e40af" font-weight="bold">หลักสูตร</text>
+        <circle cx="256" cy="69" r="7" fill="#22c55e"/>
+        <path d="M253 69 L255.5 71.5 L259.5 67" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polygon points="35,161 325,161 342,175 18,175" fill="#94a3b8"/>
+      </svg>
+    `
+  },
+  {
+    counter: "STEP 03 / 05",
+    title: "ดำเนินการกรอกข้อมูล 3 เอกสาร",
+    desc: "ดำเนินการกรอกข้อมูล 3 เอกสาร คือ PDPA , หนังสือสัญญา , ผลการเรียนฉบับสมบูรณ์",
+    svg: `
+      <svg viewBox="0 0 360 190" class="w-full h-full max-w-[340px]">
+        <rect x="65" y="16" width="230" height="145" rx="12" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
+        <rect x="65" y="16" width="230" height="26" rx="10" fill="#1d4ed8"/>
+        <circle cx="82" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="95" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="108" cy="29" r="4" fill="#bfdbfe"/>
+        <rect x="88" y="52" width="184" height="28" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+        <text x="102" y="70" font-size="11.5" fill="#1e293b" font-weight="bold">1. PDPA</text>
+        <rect x="88" y="85" width="184" height="28" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+        <text x="102" y="103" font-size="11.5" fill="#1e293b" font-weight="bold">2. หนังสือสัญญา</text>
+        <rect x="88" y="118" width="184" height="28" rx="7" fill="#f8fafc" stroke="#cbd5e1"/>
+        <text x="102" y="136" font-size="11.5" fill="#1e293b" font-weight="bold">3. ผลการเรียนฉบับสมบูรณ์</text>
+        <polygon points="35,161 325,161 342,175 18,175" fill="#94a3b8"/>
+      </svg>
+    `
+  },
+  {
+    counter: "STEP 04 / 05",
+    title: "รอตรวจสอบจากเจ้าหน้าที่",
+    desc: "รอตรวจสอบจากเจ้าหน้าที่ เพื่อพิจารณาความถูกต้องของเอกสารทั้ง 3 รายการ",
+    svg: `
+      <svg viewBox="0 0 360 190" class="w-full h-full max-w-[340px]">
+        <rect x="65" y="16" width="230" height="145" rx="12" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
+        <rect x="65" y="16" width="230" height="26" rx="10" fill="#1d4ed8"/>
+        <circle cx="82" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="95" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="108" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="180" cy="96" r="34" fill="#fef3c7" stroke="#f59e0b" stroke-width="3"/>
+        <line x1="180" y1="77" x2="180" y2="97" stroke="#d97706" stroke-width="3.5" stroke-linecap="round"/>
+        <line x1="180" y1="97" x2="194" y2="105" stroke="#d97706" stroke-width="3.5" stroke-linecap="round"/>
+        <polygon points="35,161 325,161 342,175 18,175" fill="#94a3b8"/>
+      </svg>
+    `
+  },
+  {
+    counter: "STEP 05 / 05",
+    title: "รับข้อมูลระบบบริหารการศึกษา",
+    desc: "เมื่อตรวจสอบเรียบร้อยทั้ง 3 เอกสาร กดปุ่ม ระบบบริหารการศึกษา เพื่อรับข้อมูล website , username , password",
+    svg: `
+      <svg viewBox="0 0 360 190" class="w-full h-full max-w-[340px]">
+        <rect x="65" y="16" width="230" height="145" rx="12" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
+        <rect x="65" y="16" width="230" height="26" rx="10" fill="#1d4ed8"/>
+        <circle cx="82" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="95" cy="29" r="4" fill="#bfdbfe"/>
+        <circle cx="108" cy="29" r="4" fill="#bfdbfe"/>
+        <rect x="92" y="54" width="176" height="22" rx="6" fill="#eff6ff" stroke="#93c5fd"/>
+        <text x="102" y="69" font-size="10.5" fill="#1d4ed8" font-weight="bold">Website: reg.catc.or.th</text>
+        <rect x="92" y="82" width="176" height="22" rx="6" fill="#f1f5f9" stroke="#cbd5e1"/>
+        <text x="102" y="97" font-size="10.5" fill="#334155" font-weight="bold">Username &amp; Password</text>
+        <rect x="116" y="112" width="128" height="28" rx="8" fill="#f97316"/>
+        <text x="180" y="130" text-anchor="middle" font-size="11" fill="#ffffff" font-weight="bold">ระบบบริหารการศึกษา</text>
+        <polygon points="35,161 325,161 342,175 18,175" fill="#94a3b8"/>
+      </svg>
+    `
+  }
+];
+
+let currentGuideStep = 0;
 let currentStudent = null;
 let adminStudentsList = [];
 let currentAdminTab = 'pdpa';
@@ -245,15 +352,112 @@ function renderStudentUI() {
   }
 }
 
-// ควบคุม Modal คำอธิบายขั้นตอนการดำเนินการ
-function openGuideModal() {
+// ==========================================
+// Quick Start Guide Modal (Interactive 5 ขั้นตอน)
+// ==========================================
+function syncGuideCheckboxVisual(checked) {
+  const checkbox = document.getElementById('guideDontShowAgain');
+  const visual = document.getElementById('guideCheckboxVisual');
+  if (checkbox) checkbox.checked = checked;
+  if (visual) {
+    visual.className = checked
+      ? "w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] transition"
+      : "w-5 h-5 rounded-full bg-gray-200 text-transparent flex items-center justify-center text-[11px] transition";
+  }
+}
+
+function toggleDontShowGuide(checked) {
+  syncGuideCheckboxVisual(checked);
+  try {
+    if (checked) {
+      localStorage.setItem(HIDE_GUIDE_STORAGE_KEY, '1');
+    } else {
+      localStorage.removeItem(HIDE_GUIDE_STORAGE_KEY);
+    }
+  } catch (e) {
+    console.warn("บันทึกการตั้งค่าคำแนะนำไม่สำเร็จ:", e);
+  }
+}
+
+function renderGuideStep(stepIndex) {
+  const total = QUICK_GUIDE_STEPS.length;
+  currentGuideStep = Math.max(0, Math.min(total - 1, stepIndex));
+  const step = QUICK_GUIDE_STEPS[currentGuideStep];
+
+  document.getElementById('guideStepCounter').innerText = step.counter;
+  document.getElementById('guideStepTitle').innerText = step.title;
+  document.getElementById('guideStepDesc').innerText = step.desc;
+  document.getElementById('guideIllustrationBox').innerHTML = step.svg;
+
+  // อัปเดตแถบความคืบหน้า 5 ช่องด้านบน
+  const barsContainer = document.getElementById('guideProgressBars');
+  if (barsContainer) {
+    barsContainer.innerHTML = QUICK_GUIDE_STEPS.map((_, idx) =>
+      `<div class="h-1 rounded-full transition-all ${idx <= currentGuideStep ? 'bg-blue-600' : 'bg-gray-200'}"></div>`
+    ).join('');
+  }
+
+  // อัปเดตจุดไข่ปลา
+  const dotsContainer = document.getElementById('guideDots');
+  if (dotsContainer) {
+    dotsContainer.innerHTML = QUICK_GUIDE_STEPS.map((_, idx) => {
+      const active = idx === currentGuideStep;
+      return `<button type="button" onclick="renderGuideStep(${idx})" aria-label="ไปยังขั้นตอนที่ ${idx + 1}" class="h-1.5 rounded-full transition-all ${active ? 'w-5 bg-blue-600' : 'w-1.5 bg-gray-300 hover:bg-gray-400'}"></button>`;
+    }).join('');
+  }
+
+  // ปุ่มย้อนกลับ / ถัดไป / เสร็จสิ้น
+  const prevBtn = document.getElementById('guidePrevBtn');
+  const nextLabel = document.getElementById('guideNextLabel');
+  const nextIcon = document.getElementById('guideNextIcon');
+
+  if (prevBtn) {
+    prevBtn.disabled = currentGuideStep === 0;
+    prevBtn.className = currentGuideStep === 0
+      ? "px-5 py-2.5 rounded-full border border-gray-100 bg-gray-50 text-gray-300 text-xs md:text-sm font-bold cursor-not-allowed flex items-center gap-1.5"
+      : "px-5 py-2.5 rounded-full border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs md:text-sm font-bold transition flex items-center gap-1.5";
+  }
+
+  if (nextLabel && nextIcon) {
+    if (currentGuideStep === total - 1) {
+      nextLabel.innerText = "เสร็จสิ้น";
+      nextIcon.className = "fa-solid fa-check text-xs";
+    } else {
+      nextLabel.innerText = "ถัดไป";
+      nextIcon.className = "fa-solid fa-chevron-right text-xs";
+    }
+  }
+}
+
+function openGuideModal(startStep = 0) {
   const modal = document.getElementById('guideModal');
-  if (modal) modal.style.display = 'block';
+  if (!modal) return;
+  let hideSaved = false;
+  try {
+    hideSaved = localStorage.getItem(HIDE_GUIDE_STORAGE_KEY) === '1';
+  } catch (e) {}
+  syncGuideCheckboxVisual(hideSaved);
+  renderGuideStep(startStep);
+  modal.style.display = 'block';
 }
 
 function closeGuideModal() {
   const modal = document.getElementById('guideModal');
   if (modal) modal.style.display = 'none';
+}
+
+function prevGuideStep() {
+  if (currentGuideStep > 0) {
+    renderGuideStep(currentGuideStep - 1);
+  }
+}
+
+function nextGuideStep() {
+  if (currentGuideStep < QUICK_GUIDE_STEPS.length - 1) {
+    renderGuideStep(currentGuideStep + 1);
+  } else {
+    closeGuideModal();
+  }
 }
 
 // ควบคุม Modal แถบบาร์แสดง % ความคืบหน้าขณะรอสร้าง/อัปโหลด
