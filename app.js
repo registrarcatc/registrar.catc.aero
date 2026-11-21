@@ -2,7 +2,6 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbw1K2D8a27-m4AjHEA9FSQjhxpkwSspuKpZ4HJa2NYtti4kwbOhjQgmpoIy_0XhElW0/exec";
 const ADMIN_ID = "1032355109000";
 const THAI_ADDRESS_CACHE_KEY = "CATC_THAI_ADDRESS_V1";
-const HIDE_GUIDE_STORAGE_KEY = "CATC_HIDE_QUICK_GUIDE_V1";
 
 const ALL_77_PROVINCES = [
   "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น",
@@ -64,8 +63,8 @@ const QUICK_GUIDE_STEPS = [
   },
   {
     counter: "STEP 03 / 05",
-    title: "ดำเนินการกรอกข้อมูล 3 เอกสาร",
-    desc: "ดำเนินการกรอกข้อมูล 3 เอกสาร คือ PDPA , หนังสือสัญญา , ผลการเรียนฉบับสมบูรณ์",
+    title: "ดำเนินการกรอกข้อมูลเอกสารให้สมบูรณ์",
+    desc: "เอกสาร ประกอบด้วย PDPA , หนังสือสัญญา , ผลการเรียนฉบับสมบูรณ์",
     svg: `
       <svg viewBox="0 0 360 190" class="w-full h-full max-w-[340px]">
         <rect x="65" y="16" width="230" height="145" rx="12" fill="#ffffff" stroke="#93c5fd" stroke-width="3"/>
@@ -355,30 +354,6 @@ function renderStudentUI() {
 // ==========================================
 // Quick Start Guide Modal (Interactive 5 ขั้นตอน)
 // ==========================================
-function syncGuideCheckboxVisual(checked) {
-  const checkbox = document.getElementById('guideDontShowAgain');
-  const visual = document.getElementById('guideCheckboxVisual');
-  if (checkbox) checkbox.checked = checked;
-  if (visual) {
-    visual.className = checked
-      ? "w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[11px] transition"
-      : "w-5 h-5 rounded-full bg-gray-200 text-transparent flex items-center justify-center text-[11px] transition";
-  }
-}
-
-function toggleDontShowGuide(checked) {
-  syncGuideCheckboxVisual(checked);
-  try {
-    if (checked) {
-      localStorage.setItem(HIDE_GUIDE_STORAGE_KEY, '1');
-    } else {
-      localStorage.removeItem(HIDE_GUIDE_STORAGE_KEY);
-    }
-  } catch (e) {
-    console.warn("บันทึกการตั้งค่าคำแนะนำไม่สำเร็จ:", e);
-  }
-}
-
 function renderGuideStep(stepIndex) {
   const total = QUICK_GUIDE_STEPS.length;
   currentGuideStep = Math.max(0, Math.min(total - 1, stepIndex));
@@ -432,11 +407,6 @@ function renderGuideStep(stepIndex) {
 function openGuideModal(startStep = 0) {
   const modal = document.getElementById('guideModal');
   if (!modal) return;
-  let hideSaved = false;
-  try {
-    hideSaved = localStorage.getItem(HIDE_GUIDE_STORAGE_KEY) === '1';
-  } catch (e) {}
-  syncGuideCheckboxVisual(hideSaved);
   renderGuideStep(startStep);
   modal.style.display = 'block';
 }
